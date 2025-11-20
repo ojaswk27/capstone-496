@@ -84,4 +84,4 @@ I plan to execute these steps to complete my project.
 
 ## Conclusion:
 
-I planned to build an AI design assistant that covers all the MAT496 topics (prompting, structured output, semantic search, RAG, tool calling, and LangGraph) and shows creativity by actually generating designs instead of just summarizing information. I think I have/have-not achieved the conclusion satisfactorily. The reason for your satisfaction/unsatisfaction.
+[Will write once done]
