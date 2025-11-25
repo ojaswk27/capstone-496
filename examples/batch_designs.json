@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Surveillance Drone",
+    "description": "Long endurance surveillance drone",
+    "request": "Design a surveillance drone with 60 minute flight time, 2kg camera payload, operating altitude 150m"
+  },
+  {
+    "name": "Private Aircraft",
+    "description": "Small 2-person aircraft",
+    "request": "Design a 2-person private aircraft with 500km range, 200 km/h cruise speed, short runway capability"
+  },
+  {
+    "name": "Model Rocket",
+    "description": "High-power model rocket",
+    "request": "Design a model rocket to reach 1km altitude with 500g payload recovery system"
+  },
+  {
+    "name": "LEO Satellite",
+    "description": "Earth observation satellite",
+    "request": "Design a 100kg Earth observation satellite for 400km LEO orbit with 5-year mission life"
+  },
+  {
+    "name": "Hybrid VTOL",
+    "description": "Vertical takeoff cargo delivery",
+    "request": "Design a hybrid VTOL aircraft with vertical takeoff capability and 100km cruise range at 150 km/h"
+  },
+  {
+    "name": "Competition Glider",
+    "description": "High-performance sailplane",
+    "request": "Design a high-performance sailplane for cross-country soaring competition with 50:1 glide ratio target"
+  },
+  {
+    "name": "Heavy-Lift Cargo Drone",
+    "description": "Octocopter for cargo delivery",
+    "request": "Design an octocopter for 15kg cargo delivery with 30 minute flight time"
+  },
+  {
+    "name": "SAR Helicopter",
+    "description": "Search and rescue helicopter",
+    "request": "Design a light helicopter for search and rescue operations with 4 crew, 300km range"
+  }
+]

@@ -54,7 +54,7 @@ I picked this project because it's creative - instead of just summarizing inform
 
 I plan to execute these steps to complete my project.
 
-- [TODO] Step 1 involves setting up the project - fork the template repo, install langchain, langgraph, langsmith, and FAISS/ChromaDB, set up API keys
+- [TODO] Step 1 involves setting up the project - fork the template repo, install langchain, langgraph, langsmith, and FAISS/ChromaDB, set up API keys. Done!
 
 - [TODO] Step 2 involves collecting research papers - download 30-40 papers from arXiv and NASA on drones, planes, helicopters, rockets, and satellites, organize them by vehicle type
 
