@@ -1,0 +1,271 @@
+# Multirotor Control Systems and Flight Dynamics
+## Reference Document for Aerospace Design Assistant
+
+### 1. Coordinate Systems and Notation
+
+#### 1.1 Reference Frames
+
+Earth-Fixed Frame (NED):
+- X_e: North
+- Y_e: East  
+- Z_e: Down
+
+Body-Fixed Frame:
+- X_b: Forward
+- Y_b: Right
+- Z_b: Down
+
+#### 1.2 Euler Angles
+
+Rotation sequence (3-2-1):
+- ψ (Yaw): Rotation about Z_e
+- θ (Pitch): Rotation about Y'
+- φ (Roll): Rotation about X''
+
+Rotation matrix R_eb:
+R = R_z(ψ) × R_y(θ) × R_x(φ)
+
+Angular velocity transformation:
+[p]   [1    0       -sin(θ)   ] [φ̇]
+[q] = [0  cos(φ)   cos(θ)sin(φ)] [θ̇]
+[r]   [0  -sin(φ)  cos(θ)cos(φ)] [ψ̇]
+
+### 2. Quadcopter Equations of Motion
+
+#### 2.1 Translational Dynamics
+
+Newton's equations in Earth frame:
+m × ẍ = (cos(ψ)sin(θ)cos(φ) + sin(ψ)sin(φ)) × F_z
+m × ÿ = (sin(ψ)sin(θ)cos(φ) - cos(ψ)sin(φ)) × F_z
+m × z̈ = -m×g + cos(θ)cos(φ) × F_z
+
+Where F_z is total thrust (negative up in NED).
+
+Simplified (small angles):
+m × ẍ ≈ F_z × (θ×cos(ψ) + φ×sin(ψ))
+m × ÿ ≈ F_z × (θ×sin(ψ) - φ×cos(ψ))
+m × z̈ ≈ -m×g + F_z
+
+#### 2.2 Rotational Dynamics
+
+Euler equations:
+I_x × ṗ = (I_y - I_z) × q × r + τ_x
+I_y × q̇ = (I_z - I_x) × p × r + τ_y
+I_z × ṙ = (I_x - I_y) × p × q + τ_z
+
+For symmetric quadcopter (I_x = I_y):
+I_x × ṗ = τ_x
+I_y × q̇ = τ_y
+I_z × ṙ = τ_z (approximately)
+
+#### 2.3 Motor Mixing (X Configuration)
+
+Control inputs:
+- U_1: Total thrust
+- U_2: Roll torque
+- U_3: Pitch torque
+- U_4: Yaw torque
+
+Motor speeds (squared):
+ω_1² = (U_1 + U_2 - U_3 + U_4) / (4 × k_f)  [Front-Right, CCW]
+ω_2² = (U_1 - U_2 - U_3 - U_4) / (4 × k_f)  [Rear-Right, CW]
+ω_3² = (U_1 - U_2 + U_3 + U_4) / (4 × k_f)  [Rear-Left, CCW]
+ω_4² = (U_1 + U_2 + U_3 - U_4) / (4 × k_f)  [Front-Left, CW]
+
+Inverse (forces to control):
+U_1 = k_f × (ω_1² + ω_2² + ω_3² + ω_4²)
+U_2 = k_f × L × (ω_1² - ω_2² - ω_3² + ω_4²)
+U_3 = k_f × L × (-ω_1² - ω_2² + ω_3² + ω_4²)
+U_4 = k_m × (ω_1² - ω_2² + ω_3² - ω_4²)
+
+Where:
+- k_f = Thrust coefficient
+- k_m = Moment coefficient
+- L = Arm length
+
+### 3. PID Control
+
+#### 3.1 Basic PID Structure
+
+Control output:
+u(t) = K_p × e(t) + K_i × ∫e(t)dt + K_d × de/dt
+
+Discrete implementation:
+u[k] = K_p × e[k] + K_i × Σe[i]×Δt + K_d × (e[k] - e[k-1])/Δt
+
+#### 3.2 Cascaded PID Architecture
+
+Typical quadcopter control loops:
+1. Inner loop (fast): Rate control (p, q, r)
+2. Middle loop: Attitude control (φ, θ, ψ)
+3. Outer loop (slow): Position/velocity control (x, y, z)
+
+Rate controller (example for roll):
+τ_x = K_p_rate × (p_cmd - p) + K_d_rate × ṗ
+
+Attitude controller:
+p_cmd = K_p_att × (φ_cmd - φ) + K_d_att × φ̇
+
+Position controller:
+φ_cmd = K_p_pos × (x_cmd - x) + K_d_pos × ẋ
+
+#### 3.3 Tuning Guidelines
+
+Starting values (for typical 1-2 kg quadcopter):
+| Loop | K_p | K_i | K_d |
+|------|-----|-----|-----|
+| Roll/Pitch rate | 0.1-0.5 | 0.01-0.1 | 0.001-0.01 |
+| Yaw rate | 0.5-2.0 | 0.1-0.5 | 0.01-0.05 |
+| Roll/Pitch angle | 3-8 | 0-0.5 | 0.1-0.5 |
+| Yaw angle | 2-5 | 0-0.2 | 0-0.1 |
+| Position | 0.5-2 | 0-0.1 | 0.2-1.0 |
+| Altitude | 1-3 | 0.1-0.5 | 0.2-1.0 |
+
+Tuning order:
+1. Rate controllers (inner loop first)
+2. Attitude controllers
+3. Position/altitude controllers
+
+### 4. State Estimation
+
+#### 4.1 Sensor Fusion
+
+Complementary filter (attitude):
+θ_est = α × (θ_est + gyro × dt) + (1-α) × θ_accel
+
+Where:
+- α = τ / (τ + dt)
+- τ = Filter time constant (0.1-1.0 s typical)
+
+#### 4.2 Kalman Filter
+
+State prediction:
+x̂_k|k-1 = F × x̂_k-1|k-1 + B × u_k
+P_k|k-1 = F × P_k-1|k-1 × F^T + Q
+
+Measurement update:
+K = P_k|k-1 × H^T × (H × P_k|k-1 × H^T + R)^-1
+x̂_k|k = x̂_k|k-1 + K × (z_k - H × x̂_k|k-1)
+P_k|k = (I - K × H) × P_k|k-1
+
+#### 4.3 IMU Specifications
+
+6-DOF IMU typical specs:
+- Gyroscope range: ±2000 °/s
+- Gyroscope noise: 0.01-0.1 °/s/√Hz
+- Accelerometer range: ±16g
+- Accelerometer noise: 0.1-1 mg/√Hz
+- Update rate: 100-1000 Hz
+
+9-DOF IMU adds:
+- Magnetometer for yaw reference
+- Susceptible to magnetic interference
+
+### 5. Trajectory Generation
+
+#### 5.1 Minimum Snap Trajectories
+
+Position trajectory as polynomial:
+p(t) = Σ c_i × t^i (typically 7th order)
+
+Minimum snap objective:
+minimize ∫(d⁴p/dt⁴)² dt
+
+Constraints:
+- Position waypoints
+- Velocity at waypoints
+- Acceleration at waypoints
+
+#### 5.2 Waypoint Following
+
+Simple waypoint navigation:
+v_cmd = K × (p_waypoint - p_current)
+
+With velocity limiting:
+v_cmd = min(v_cmd, v_max) × v_cmd/|v_cmd|
+
+Arrival detection:
+|p_waypoint - p_current| < d_threshold
+
+### 6. Flight Modes
+
+#### 6.1 Stabilize/Attitude Mode
+- Pilot controls attitude directly
+- Zero stick = level flight
+- Altitude not controlled
+
+#### 6.2 Altitude Hold
+- Throttle controls climb rate
+- Barometer/sonar for altitude
+- Attitude still pilot controlled
+
+#### 6.3 Position Hold (Loiter)
+- GPS required
+- Maintains position and altitude
+- Stick inputs = velocity commands
+
+#### 6.4 Auto/Mission
+- Follows pre-programmed waypoints
+- Fully autonomous
+- Failsafe to RTL on signal loss
+
+#### 6.5 Return to Launch (RTL)
+- Climbs to safe altitude
+- Flies to home position
+- Lands automatically
+
+### 7. Safety Features
+
+#### 7.1 Motor Failure Handling
+
+Quadcopter with one motor out:
+- Cannot maintain yaw control
+- Can maintain position by spinning
+- Controlled descent possible
+
+Hexacopter/Octocopter:
+- Single motor failure recoverable
+- Reduced performance
+- Automatic motor redistribution
+
+#### 7.2 Geofencing
+
+Typical parameters:
+- Maximum altitude: 120 m (regulatory)
+- Maximum distance: 500-2000 m
+- Minimum distance from home: 10 m
+- No-fly zone avoidance
+
+#### 7.3 Low Battery Actions
+
+Voltage thresholds:
+- Warning: 3.5 V/cell
+- Critical: 3.3 V/cell
+- Emergency: 3.0 V/cell
+
+Actions:
+- Warning: Alert pilot
+- Critical: RTL initiated
+- Emergency: Immediate landing
+
+### 8. Common Flight Controller Specifications
+
+#### 8.1 Processing Requirements
+- Loop rate: 250-1000 Hz
+- Processor: 32-bit ARM (Cortex-M4/M7)
+- Flash: 512 KB - 2 MB
+- RAM: 128 KB - 512 KB
+
+#### 8.2 I/O Requirements
+- PWM outputs: 4-8 channels
+- Serial ports: 3-6 UARTs
+- I2C, SPI buses
+- ADC for voltage/current sensing
+
+### 9. References
+
+1. Mahony, R. "Nonlinear Complementary Filters on SO(3)"
+2. Mellinger, D. "Minimum Snap Trajectory Generation"
+3. PX4 Autopilot Documentation
+4. ArduPilot Documentation
+5. Beard, R.W. "Small Unmanned Aircraft" Princeton Press

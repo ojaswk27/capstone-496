@@ -1,0 +1,280 @@
+# Aircraft Structural Design and Analysis
+## Reference Document for Aerospace Design Assistant
+
+### 1. Structural Design Philosophy
+
+#### 1.1 Design Criteria
+
+Load factors (n) for different categories:
+- Utility category: +4.4g to -1.76g
+- Aerobatic category: +6.0g to -3.0g
+- Transport category: +2.5g to -1.0g
+- UAV (small): +4.0g to -2.0g
+
+Ultimate load = 1.5 × Limit load (typical safety factor)
+
+#### 1.2 V-n Diagram
+
+Key speeds:
+- V_S: Stall speed at 1g
+- V_A: Maneuvering speed = V_S × √n_max
+- V_C: Cruise speed
+- V_D: Dive speed
+- V_NE: Never exceed speed
+
+Gust load factor:
+n_gust = 1 + (K_g × U_de × V × a) / (498 × (W/S))
+
+Where:
+- K_g = Gust alleviation factor
+- U_de = Derived gust velocity (ft/s)
+- a = Lift curve slope (per radian)
+
+### 2. Wing Structural Analysis
+
+#### 2.1 Wing Bending
+
+Bending moment distribution (elliptical lift):
+M(y) = (L/π) × √(1 - (2y/b)²) × (b/2 - y)
+
+Maximum bending moment (at root):
+M_root = (L × b) / (3π) ≈ 0.106 × L × b
+
+For rectangular lift distribution:
+M_root = L × b / 8 = 0.125 × L × b
+
+#### 2.2 Spar Design
+
+Required spar cap area:
+A_cap = M_max / (σ_allow × h_spar)
+
+Shear web thickness:
+t_web = V_max / (τ_allow × h_spar)
+
+Spar weight estimation:
+W_spar ≈ 2 × ρ_material × A_cap × b/2
+
+#### 2.3 Skin Stress
+
+Skin buckling stress:
+σ_cr = k × E × (t/b)²
+
+Where:
+- k = Buckling coefficient (depends on edge conditions)
+- t = Skin thickness
+- b = Stiffener spacing
+
+Minimum gauge thickness:
+t_min = 0.4 mm (composites), 0.8 mm (aluminum)
+
+### 3. Fuselage Structural Analysis
+
+#### 3.1 Semi-Monocoque Design
+
+Skin stress from bending:
+σ = M × y / I
+
+Shear flow in skin:
+q = V × Q / I
+
+Torsion shear flow:
+q_t = T / (2 × A_enclosed)
+
+#### 3.2 Pressure Loads (Pressurized Fuselage)
+
+Hoop stress:
+σ_h = Δp × R / t
+
+Longitudinal stress:
+σ_l = Δp × R / (2t)
+
+Cabin pressure differential:
+Δp = p_cabin - p_ambient
+
+Typical values: Δp = 8-9 psi for commercial aircraft
+
+#### 3.3 Landing Gear Loads
+
+Vertical load factor at touchdown:
+n_v = 1 + (V_v / V_sink_design)²
+
+Typical sink rate design: 10 ft/s
+Gear load factor: 2.0-3.0g
+
+### 4. Material Properties
+
+#### 4.1 Aluminum Alloys
+
+2024-T3:
+- Density: 2,780 kg/m³
+- E: 73.1 GPa
+- σ_yield: 345 MPa
+- σ_ultimate: 483 MPa
+- σ_fatigue: 138 MPa (10^7 cycles)
+
+7075-T6:
+- Density: 2,810 kg/m³
+- E: 71.7 GPa
+- σ_yield: 503 MPa
+- σ_ultimate: 572 MPa
+- σ_fatigue: 159 MPa
+
+6061-T6:
+- Density: 2,700 kg/m³
+- E: 68.9 GPa
+- σ_yield: 276 MPa
+- σ_ultimate: 310 MPa
+
+#### 4.2 Carbon Fiber Composites
+
+Unidirectional CFRP (typical):
+- Density: 1,600 kg/m³
+- E_1: 140 GPa (fiber direction)
+- E_2: 10 GPa (transverse)
+- σ_1_tension: 1,500 MPa
+- σ_1_compression: 1,200 MPa
+- τ_12: 70 MPa
+
+Quasi-isotropic layup [0/±45/90]:
+- E: 50-55 GPa
+- σ_ultimate: 500-600 MPa
+
+#### 4.3 Other Materials
+
+Fiberglass (E-glass/epoxy):
+- Density: 1,900 kg/m³
+- E: 25 GPa
+- σ_ultimate: 500 MPa
+
+Steel 4130:
+- Density: 7,850 kg/m³
+- E: 200 GPa
+- σ_yield: 435 MPa
+- σ_ultimate: 670 MPa
+
+### 5. Weight Estimation
+
+#### 5.1 Statistical Weight Methods
+
+Wing weight (General Aviation):
+W_wing/S = 0.036 × S^0.758 × AR^0.6 × (W_to/S)^0.042 × (100×t/c)^-0.3
+
+Fuselage weight:
+W_fuse = K × S_wet × (L/D_fuse)^0.5
+
+Tail weight:
+W_tail = 0.04 × W_wing
+
+#### 5.2 Component Weight Fractions
+
+Typical weight breakdown (GA aircraft):
+| Component | % MTOW |
+|-----------|--------|
+| Wing | 8-12% |
+| Fuselage | 8-12% |
+| Tail | 2-3% |
+| Landing gear | 4-6% |
+| Powerplant | 12-18% |
+| Fixed equipment | 8-12% |
+| Fuel | 15-25% |
+| Payload | 20-30% |
+
+Empty weight fraction:
+W_e/W_to = 0.55-0.65 (GA)
+W_e/W_to = 0.45-0.55 (transport)
+
+#### 5.3 Center of Gravity
+
+CG location:
+x_cg = Σ(W_i × x_i) / Σ(W_i)
+
+CG range requirements:
+- Forward limit: Elevator authority to flare
+- Aft limit: Longitudinal stability margin
+
+Typical CG range: 15-30% MAC
+
+### 6. Fatigue and Damage Tolerance
+
+#### 6.1 S-N Curves
+
+Basquin's equation:
+σ_a = σ_f' × (2N_f)^b
+
+Where:
+- σ_a = Stress amplitude
+- N_f = Cycles to failure
+- b = Fatigue exponent (-0.05 to -0.12)
+
+Endurance limit:
+- Steel: ~0.5 × σ_ultimate
+- Aluminum: No true endurance limit
+
+#### 6.2 Damage Tolerance
+
+Crack growth rate (Paris law):
+da/dN = C × (ΔK)^m
+
+Where:
+- ΔK = Stress intensity range
+- C, m = Material constants
+
+Inspection intervals:
+t_insp = a_crit / (da/dN)_max
+
+#### 6.3 Composite Damage
+
+Damage types:
+- Matrix cracking
+- Delamination
+- Fiber breakage
+
+BVID (Barely Visible Impact Damage):
+- Threshold: 0.5-1.0 mm dent depth
+- Design strain limit with BVID: 4000-5000 με
+
+### 7. Joining Methods
+
+#### 7.1 Riveted Joints
+
+Rivet shear strength:
+P_shear = τ_allow × A_rivet × n_rivets
+
+Bearing strength:
+P_bearing = σ_bearing × d × t × n_rivets
+
+Rivet spacing:
+- Edge distance: 2d minimum
+- Pitch: 4-6d typical
+- Row spacing: 4-5d
+
+#### 7.2 Bonded Joints
+
+Adhesive shear stress:
+τ = P / (w × L_overlap)
+
+Minimum overlap length:
+L_min = σ_adherend × t / τ_adhesive
+
+Typical adhesive properties:
+- Shear strength: 20-40 MPa
+- Peel strength: 5-15 kN/m
+
+#### 7.3 Composite Joints
+
+Bolt bearing stress:
+σ_b = P / (d × t)
+
+Bearing allowable: 600-900 MPa (typical CFRP)
+
+Bolt hole stress concentration:
+K_t = 3.0 (open hole)
+K_t = 1.5-2.0 (filled hole)
+
+### 8. References
+
+1. Bruhn, E.F. "Analysis and Design of Flight Vehicle Structures"
+2. Niu, M.C.Y. "Airframe Structural Design" Conmilit Press
+3. Megson, T.H.G. "Aircraft Structures for Engineering Students"
+4. Federal Aviation Regulations Part 23, Part 25
+5. MIL-HDBK-5 "Metallic Materials Properties"

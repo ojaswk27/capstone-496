@@ -1,0 +1,312 @@
+# Thermal Soaring and Cross-Country Techniques
+## Reference Document for Aerospace Design Assistant
+
+### 1. Thermal Formation
+
+#### 1.1 Thermal Sources
+
+Surface heating:
+- Dark surfaces (roads, plowed fields)
+- Dry soil vs. vegetated areas
+- Urban heat islands
+- Rocky terrain, cliffs
+
+Temperature differential required:
+ΔT_surface = 5-10°C above ambient for thermal formation
+
+Thermal trigger:
+- Lift-off when convective instability reached
+- Often at terrain features (ridges, edges)
+
+#### 1.2 Thermal Structure
+
+Core:
+- Strongest lift at center
+- Typical diameter: 100-500 m
+- Lift: 2-6 m/s typical
+
+Ring structure:
+- Lift decreases radially
+- May have sink around edges
+
+Thermal height:
+- Convective boundary layer top
+- Marked by cumulus cloud base
+- 1000-3000 m typical in temperate regions
+
+#### 1.3 Atmospheric Conditions
+
+Lapse rate:
+- Dry adiabatic: 9.8°C/km
+- Environmental lapse rate > 6°C/km for good thermals
+- Inversion caps thermal development
+
+Trigger temperature:
+T_trigger = T_surface - (lapse_rate × mixing_height)
+
+Best soaring conditions:
+- Solar heating (10 AM - 5 PM)
+- Low humidity
+- Light winds (<15 kt)
+- No inversions below 2000 m
+
+### 2. Centering Thermals
+
+#### 2.1 Entry Techniques
+
+Random entry:
+- Note heading when lift encountered
+- Complete 360° turn
+- Note where lift was strongest
+- Shift circle toward strong lift
+
+Systematic search:
+- Fly through core initially
+- Mark position of max lift
+- Turn back to center
+
+#### 2.2 Centering Methods
+
+Visual references:
+- Note horizon position in lift
+- Shift circle toward that reference
+
+Vario-based:
+- Listen for increasing tone
+- Steepen bank as lift increases
+- Flatten when lift decreases
+
+GPS-assisted (modern varios):
+- Thermal core location estimated
+- Display shows direction to center
+
+#### 2.3 Circling Performance
+
+Circle radius:
+R = V² / (g × tan(φ))
+
+Sink rate in turn:
+V_s_turn = V_s_straight / cos³(φ)
+
+Load factor:
+n = 1 / cos(φ)
+
+Optimal bank angle trade-off:
+- Steeper bank → smaller radius → more time in core
+- Steeper bank → higher sink rate
+
+Typical thermal circling:
+- Bank angle: 30-45°
+- Speed: 1.3-1.5 × V_stall
+- Radius: 100-200 m
+
+### 3. Speed to Fly Theory
+
+#### 3.1 MacCready Theory
+
+Optimal inter-thermal speed:
+Fly faster when:
+- Strong thermals expected
+- Time is valuable
+- High on glide
+
+MacCready ring setting:
+- Set to expected climb rate in next thermal
+- Read optimal speed from polar
+
+Speed polar shift:
+V_opt increases by √(1 + MC/V_s_min)
+
+#### 3.2 Dolphin Flying
+
+In rising air: Slow down
+In sinking air: Speed up
+
+Speed adjustment:
+ΔV = k × w
+
+Where:
+- w = Vertical air mass motion
+- k = Sensitivity factor (1-2 typical)
+
+Benefits:
+- Extract energy from lift without circling
+- Faster average cross-country speed
+- Works best in wave, convergence, weak thermals
+
+#### 3.3 Final Glide
+
+Calculate arrival height:
+h_arrival = h_current - D/L/D_eff
+
+Effective L/D accounts for:
+- Headwind: (L/D)_eff = (L/D) × V_TAS/(V_TAS + V_wind)
+- Sink rate: Include time spent in sink
+
+Safety margin:
+- Pattern altitude + 300 m minimum
+- Account for possible sink areas
+
+### 4. Cross-Country Navigation
+
+#### 4.1 Turnpoint Selection
+
+Optimal turnpoint factors:
+- Good thermal sources nearby
+- Landable fields available
+- Clear of airspace restrictions
+
+Task types:
+- Racing task: Fixed turnpoints
+- Assigned Area Task (AAT): Variable radius
+- Free distance: Maximize distance
+
+#### 4.2 Route Selection
+
+Cloud street:
+- Follow line of cumulus
+- Reduced circling time
+- May allow dolphin flying
+
+Convergence zone:
+- Wind boundaries
+- Sea breeze fronts
+- Mountain/valley flows
+
+Energy lines:
+- Connect thermal sources
+- Stay over good terrain
+
+#### 4.3 Start and Finish
+
+Start timing:
+- Start when thermals fully developed
+- Consider traffic at popular start times
+
+Finish technique:
+- Final glide from distance
+- Maximize finish height-speed trade-off
+- Account for terrain and sink
+
+### 5. Other Lift Sources
+
+#### 5.1 Ridge Lift
+
+Wind deflected by terrain:
+- Lift extends 2-3× ridge height
+- Best when wind perpendicular to ridge
+- Wind speed: 15-25 kt optimal
+
+Lift estimate:
+w ≈ V_wind × sin(slope_angle)
+
+Ridge soaring rules:
+- Keep ridge on left (in right-hand pattern)
+- Pass oncoming traffic on ridge side
+- Turn away from ridge
+
+#### 5.2 Wave Lift
+
+Mountain wave characteristics:
+- Smooth, laminar lift
+- Can extend to extreme altitudes (40,000+ ft)
+- Rotor turbulence below
+- Lenticular clouds as indicator
+
+Wave wavelength:
+λ = 2π × V_wind / N
+
+Where N is Brunt-Väisälä frequency
+
+Accessing wave:
+- Launch into rotor
+- Climb in thermal/rotor
+- Transition to laminar wave
+
+#### 5.3 Convergence Lift
+
+Sea breeze front:
+- Interface of air masses
+- Linear lift source
+- Can travel with front
+
+Outflow boundaries:
+- Thunderstorm gust fronts
+- Caution: Severe weather nearby
+
+### 6. Performance Measurement
+
+#### 6.1 Average Speed
+
+Cross-country average speed:
+V_avg = Distance / Time
+
+For thermalling flight:
+V_avg = V_cruise × R_climb / (R_climb + V_sink_cruise)
+
+Where R_climb = Average climb rate
+
+#### 6.2 Achieved L/D
+
+Achieved glide ratio:
+(L/D)_achieved = Distance / Altitude_lost
+
+Accounts for:
+- Air mass motion
+- Pilot technique
+- Weather conditions
+
+#### 6.3 Performance Indices
+
+Handicap system:
+- Index based on glider performance
+- Allows mixed-fleet competition
+- 100 = Standard class reference
+
+Speed index:
+SI = (Distance × 100) / (Time × Handicap)
+
+### 7. Safety Considerations
+
+#### 7.1 Landout Planning
+
+Always have field selected:
+- Within glide range
+- Suitable surface
+- Clear approaches
+
+Field selection criteria:
+- Length > 400 m
+- Into wind
+- No obstructions
+- Firm surface
+
+Circuit planning:
+- Fly standard pattern
+- Plan for go-around margin
+- Land in first third of field
+
+#### 7.2 Weather Hazards
+
+Overdevelopment:
+- Watch cumulus growth
+- Avoid if tops exceed freezing level
+- Exit area before cu-nimbus develops
+
+Spread-out:
+- High cirrus reduces heating
+- Thermals weaken and die
+- Plan early return
+
+Blue conditions:
+- No cumulus markers
+- Thermals still present but harder to find
+- Lower climb rates typical
+
+### 8. References
+
+1. Reichmann, H. "Cross-Country Soaring"
+2. Stewart, K. "The Soaring Pilot's Manual"
+3. Bradbury, T. "Meteorology and Flight"
+4. FAA Glider Flying Handbook
+5. SSA "Introduction to Cross-Country Soaring"

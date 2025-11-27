@@ -1,0 +1,394 @@
+# FPV Racing Drone Design and Configuration
+## Reference Document for Aerospace Design Assistant
+
+### 1. Racing Drone Categories
+
+#### 1.1 Class Definitions
+
+Micro class (Sub-250g):
+- All-up weight < 250g
+- 2.5-3" propellers
+- Exempt from many regulations
+- Indoor/outdoor capable
+
+5" Class (Standard):
+- Propeller size: 5"
+- Frame size: 200-230mm
+- Weight: 400-700g typical
+- Most popular racing class
+
+6-7" Class (Long Range):
+- Propeller size: 6-7"
+- Frame size: 250-300mm
+- Weight: 600-900g
+- Longer flight times
+
+Cinewhoop:
+- Ducted propellers
+- Prop guards standard
+- 2.5-3.5" props
+- Safe for proximity
+
+#### 1.2 Competition Standards
+
+MultiGP spec class:
+- 5" prop maximum
+- 4S battery
+- 600g weight limit
+
+FAI F3U class:
+- International racing standard
+- Specific technical requirements
+- Timing gate specifications
+
+### 2. Frame Design
+
+#### 2.1 Frame Configurations
+
+True-X:
+- Equal arm angles (90°)
+- Balanced flight characteristics
+- Most common racing design
+
+Stretched-X:
+- Front arms further apart
+- Better camera clearance
+- Improved forward flight
+
+Dead Cat:
+- Rear arms closer together
+- Props out of camera view
+- Popular for freestyle
+
+Hybrid-X:
+- Compromise design
+- Various arm angles
+- Manufacturer specific
+
+#### 2.2 Frame Materials
+
+Carbon fiber:
+- 3K or 1.5K weave
+- Thickness: 3-5mm arms, 2-3mm plates
+- Excellent strength-to-weight
+- Standard for racing
+
+Carbon-aluminum hybrid:
+- Aluminum standoffs
+- Carbon plates
+- Good vibration damping
+
+3D printed:
+- TPU for flex parts
+- Quick replacement
+- Heavier than carbon
+
+#### 2.3 Stack Mounting
+
+Standard stack:
+- 30.5 × 30.5 mm spacing
+- 20 × 20 mm (mini stack)
+- M3 mounting holes
+
+Component height:
+- FC: 2-3 mm
+- ESC: 3-4 mm
+- VTX: varies
+- Total stack: 15-25 mm
+
+### 3. Motor Selection
+
+#### 3.1 Motor Sizing
+
+Common sizes for 5":
+- 2205 (budget)
+- 2206 (standard)
+- 2306 (popular)
+- 2207 (high power)
+- 2407 (maximum)
+
+First two digits: Stator diameter (mm)
+Last two digits: Stator height (mm)
+
+#### 3.2 KV Rating
+
+4S battery (14.8V nominal):
+- Racing: 2300-2600 KV
+- Freestyle: 1900-2300 KV
+- Cinematic: 1700-2000 KV
+
+6S battery (22.2V nominal):
+- Racing: 1700-1900 KV
+- Freestyle: 1400-1700 KV
+- Efficiency: 1200-1500 KV
+
+Rule of thumb:
+KV_6S ≈ KV_4S × 0.67
+
+#### 3.3 Performance Metrics
+
+Thrust-to-weight ratio:
+- Cruising: 3-4:1
+- Freestyle: 6-8:1
+- Racing: 10-12:1
+
+Efficiency target:
+- Racing: 5-8 g/W
+- Cruising: 8-12 g/W
+
+### 4. ESC Configuration
+
+#### 4.1 ESC Specifications
+
+Current rating:
+- 5" racing: 30-45A per ESC
+- Continuous vs burst
+- Include margin for peak
+
+Voltage rating:
+- 4S: Up to 17V
+- 6S: Up to 26V
+- Match battery voltage
+
+Firmware:
+- BLHeli_S (legacy)
+- BLHeli_32 (current standard)
+- AM32 (open source)
+
+#### 4.2 4-in-1 ESC
+
+Advantages:
+- Compact
+- Less wiring
+- Integrated current sensor
+
+Specifications:
+- Individual ESC rating
+- Total current capability
+- BEC voltage/current
+
+#### 4.3 ESC Settings
+
+Motor timing: 22-26° typical
+PWM frequency: 24-48 kHz
+Motor direction: Props in or out
+Demag compensation: Low/medium/high
+
+### 5. Flight Controller
+
+#### 5.1 Processor Options
+
+F4 (STM32F405):
+- 168 MHz
+- Adequate for racing
+- Budget option
+
+F7 (STM32F722/745):
+- 216 MHz
+- Better filtering
+- More features
+
+H7 (STM32H743):
+- 480 MHz
+- Dual core option
+- Maximum performance
+
+#### 5.2 Gyro Specifications
+
+IMU chips:
+- BMI270 (common, good)
+- ICM42688P (excellent)
+- MPU6000 (legacy)
+
+Sample rate:
+- 8 kHz typical
+- 32 kHz (high-end)
+
+Filtering:
+- Hardware low-pass
+- Software notch filters
+- Dynamic filtering
+
+#### 5.3 Firmware Options
+
+Betaflight:
+- Most popular
+- Racing optimized
+- Active development
+
+iNav:
+- Navigation focused
+- GPS features
+- Autonomous flight
+
+KISS/FETtec:
+- Premium performance
+- Closed ecosystem
+- Race proven
+
+### 6. FPV System
+
+#### 6.1 Camera Specifications
+
+Sensor size:
+- 1/3" (standard)
+- 1/2.5" (larger, better low light)
+- Micro cased vs full size
+
+Resolution:
+- 800 TVL minimum
+- 1200+ TVL (standard)
+- 4K (digital systems)
+
+FOV:
+- 120-170° typical
+- Wider = more situational awareness
+- Narrower = better detail
+
+Latency:
+- Analog: <10 ms (glass-to-glass)
+- Digital: 20-40 ms typical
+
+#### 6.2 Video Transmitter (VTX)
+
+Power levels:
+- 25 mW: Short range, low interference
+- 200 mW: Standard racing
+- 400-600 mW: Long range
+- 1000+ mW: Extreme range (legal issues)
+
+Channels:
+- 5.8 GHz: 40 channels common
+- Raceband (R): 8 channels, good separation
+
+Smart audio/IRC Tramp:
+- OSD channel/power control
+- Pit mode support
+
+#### 6.3 Digital FPV Systems
+
+DJI FPV:
+- Excellent quality
+- Higher latency (28-40 ms)
+- Expensive
+
+Walksnail/Avatar:
+- Improving quality
+- Lower latency
+- More affordable
+
+HDZero:
+- Near-analog latency
+- Lower resolution
+- Racing focused
+
+### 7. Battery Selection
+
+#### 7.1 Cell Configuration
+
+4S (14.8V):
+- Standard racing
+- Good power-to-weight
+- Wide component support
+
+6S (22.2V):
+- Higher efficiency
+- Lower current draw
+- Becoming standard
+
+#### 7.2 Capacity
+
+Racing (5"):
+- 4S: 1300-1500 mAh
+- 6S: 1100-1300 mAh
+
+Freestyle (5"):
+- 4S: 1500-1800 mAh
+- 6S: 1300-1550 mAh
+
+Flight time:
+- Racing: 2-4 minutes
+- Freestyle: 4-7 minutes
+
+#### 7.3 Discharge Rating
+
+C-rating requirements:
+- Racing: 75-100C+ burst
+- Cruising: 45-75C adequate
+
+Current calculation:
+I_max = C_rating × Capacity_Ah
+
+Example: 100C × 1.3 Ah = 130A burst
+
+### 8. Propeller Selection
+
+#### 8.1 Propeller Nomenclature
+
+Format: DDPP×B or DDxPPxB
+- DD: Diameter (inches)
+- PP: Pitch (inches)
+- B: Blade count
+
+Examples:
+- 5040×3: 5" diameter, 4" pitch, 3 blade
+- 51499: 5.1" diameter, 4.99" pitch
+
+#### 8.2 Pitch Effects
+
+Low pitch (3.5-4"):
+- More thrust
+- Lower top speed
+- Better control
+
+High pitch (4.5-5"+):
+- Higher top speed
+- Less low-end thrust
+- More amp draw
+
+#### 8.3 Blade Count
+
+2-blade:
+- Most efficient
+- Less thrust
+- High-speed racing
+
+3-blade:
+- Balanced performance
+- Standard racing choice
+- Good all-around
+
+4+ blade:
+- Maximum thrust
+- Lower efficiency
+- Cinematic smoothness
+
+### 9. Build Weights
+
+#### 9.1 5" Race Build
+
+| Component | Weight (g) |
+|-----------|------------|
+| Frame | 80-120 |
+| Motors (4) | 120-140 |
+| FC + ESC | 30-50 |
+| VTX + Camera | 20-40 |
+| Receiver | 5-15 |
+| Props (4) | 20-30 |
+| Battery | 180-220 |
+| Hardware | 20-30 |
+| **Total** | **475-645** |
+
+#### 9.2 Target AUW
+
+Racing: 450-550g (with battery)
+Freestyle: 550-700g (with battery)
+Sub-250: <250g (with battery)
+
+### 10. References
+
+1. Joshua Bardwell's FPV Know-it-All Guide
+2. Oscar Liang's Quadcopter Blog
+3. MultiGP Racing Specifications
+4. Betaflight Documentation
+5. RotorBuilds Community Database

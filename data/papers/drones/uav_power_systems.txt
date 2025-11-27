@@ -1,0 +1,227 @@
+# UAV Power Systems and Battery Technology
+## Reference Document for Aerospace Design Assistant
+
+### 1. Lithium Polymer (LiPo) Battery Fundamentals
+
+#### 1.1 Cell Specifications
+
+Standard LiPo cell parameters:
+- Nominal voltage: 3.7V per cell
+- Fully charged voltage: 4.2V per cell
+- Discharge cutoff voltage: 3.0-3.3V per cell
+- Energy density: 150-250 Wh/kg
+- Power density: 1000-3000 W/kg
+
+Common configurations:
+- 3S = 3 cells in series = 11.1V nominal (12.6V charged)
+- 4S = 4 cells in series = 14.8V nominal (16.8V charged)
+- 6S = 6 cells in series = 22.2V nominal (25.2V charged)
+- 12S = 12 cells in series = 44.4V nominal (50.4V charged)
+
+#### 1.2 C-Rating and Discharge
+
+The C-rating indicates continuous discharge capability:
+Maximum_current = Capacity_Ah * C_rating
+
+For a 5000mAh 30C battery:
+Max_current = 5.0 * 30 = 150A continuous
+
+Burst ratings (typically 2x continuous):
+Burst_current = 5.0 * 60 = 300A for short periods
+
+#### 1.3 Internal Resistance Effects
+
+Voltage sag under load:
+V_actual = V_nominal - I * R_internal
+
+For a battery with 5mΩ internal resistance at 100A:
+Voltage_drop = 100 * 0.005 = 0.5V per cell
+
+Power lost to internal resistance:
+P_loss = I² * R_internal
+
+### 2. Power Budget Analysis
+
+#### 2.1 Hover Power Estimation
+
+For a quadcopter, hover power can be estimated:
+P_hover = (W^1.5) / (√(2 * ρ * A_total * η))
+
+Where η is the overall propulsion efficiency (0.5-0.7 typical).
+
+Example for 2kg drone with 10" props:
+A_total = 4 * π * (0.127)² = 0.203 m²
+P_hover = (2*9.81)^1.5 / √(2*1.225*0.203*0.6) = 230W
+
+#### 2.2 Forward Flight Power
+
+In forward flight, power decreases then increases:
+P_forward = P_induced + P_parasite + P_profile
+
+P_induced = W² / (2 * ρ * V * A) (decreases with speed)
+P_parasite = 0.5 * ρ * V³ * Cd * S_ref (increases with speed³)
+P_profile ≈ constant
+
+Minimum power speed:
+V_mp = √((4 * k * W²) / (3 * ρ² * Cd * S_ref * A))
+
+#### 2.3 Climb Power
+
+Additional power for climb:
+P_climb = W * V_climb
+
+Total power = P_hover + P_climb
+
+### 3. Endurance and Range Calculations
+
+#### 3.1 Hover Endurance
+
+Endurance_hover = (E_battery * η_battery) / P_hover
+
+Where η_battery accounts for usable capacity (typically 0.8).
+
+For 74Wh battery, 230W hover power:
+Endurance = (74 * 0.8) / 230 = 0.257 hours = 15.4 minutes
+
+#### 3.2 Forward Flight Range
+
+Range = V * Endurance
+Range = (E_battery * η) / (P_total / V)
+
+For minimum power speed, range is maximized:
+Range_max = (E_battery * η * V_mp) / P_min
+
+#### 3.3 Payload vs Endurance Tradeoff
+
+Increased payload increases required thrust:
+T_new = T_old + W_payload
+
+Power scales approximately as:
+P_new / P_old ≈ (W_new / W_old)^1.5
+
+Endurance ratio:
+E_new / E_old = (E_old / E_new) * (W_old / W_new)^1.5
+
+### 4. Motor Efficiency and Matching
+
+#### 4.1 Motor Efficiency Curve
+
+Motor efficiency varies with operating point:
+η_motor = P_mechanical / P_electrical
+η_motor = (τ * ω) / (V * I)
+
+Peak efficiency typically occurs at 70-85% of maximum power.
+
+Efficiency vs throttle:
+- 20% throttle: 50-60% efficiency
+- 50% throttle: 75-85% efficiency  
+- 80% throttle: 70-80% efficiency
+- 100% throttle: 60-75% efficiency
+
+#### 4.2 Motor-Propeller Matching
+
+For optimal efficiency, match motor KV and propeller:
+RPM_optimal = V_max * KV * throttle_hover
+
+For hover at 50% throttle with 4S battery:
+Target_RPM = 14.8 * 0.5 * KV = 7.4 * KV
+
+Propeller tip speed should stay below Mach 0.7:
+Max_RPM = (0.7 * 343) / (π * D) * 60
+
+For 10" prop: Max_RPM = 14,100 RPM
+
+#### 4.3 Electronic Speed Controller (ESC) Sizing
+
+ESC current rating should exceed maximum motor current by 20%:
+ESC_rating > 1.2 * Motor_max_current
+
+ESC voltage rating must match battery:
+ESC_voltage ≥ Battery_cells * 4.2V
+
+### 5. Thermal Management
+
+#### 5.1 Motor Temperature
+
+Power dissipated as heat:
+P_heat = P_electrical * (1 - η_motor)
+
+Temperature rise:
+ΔT = P_heat * R_thermal
+
+Maximum motor temperature typically 80-100°C.
+
+#### 5.2 Battery Temperature
+
+Optimal operating temperature: 20-40°C
+Maximum safe temperature: 60°C
+
+Discharge capacity vs temperature:
+- 0°C: 80% of rated capacity
+- 25°C: 100% of rated capacity
+- 40°C: 95% of rated capacity
+
+### 6. Design Guidelines and Best Practices
+
+#### 6.1 Power System Redundancy
+
+For reliable operation:
+- Dual batteries with isolation
+- Multiple ESCs per motor (for octocopters)
+- Voltage monitoring with failsafe
+
+#### 6.2 Weight Distribution
+
+Battery placement affects:
+- Center of gravity (should be at rotor plane height)
+- Moment of inertia (lower is more responsive)
+- Crash survivability (protected location preferred)
+
+#### 6.3 Wire Sizing
+
+Wire gauge based on current:
+- 14 AWG: 15A continuous
+- 12 AWG: 20A continuous
+- 10 AWG: 30A continuous
+- 8 AWG: 50A continuous
+
+Voltage drop in wires:
+V_drop = I * R_wire * Length
+
+### 7. Sample Power Budgets
+
+#### 7.1 Photography Drone (1.5kg AUW)
+| Component | Power (W) |
+|-----------|-----------|
+| 4x Motors (hover) | 200 |
+| Flight Controller | 5 |
+| GPS Module | 1 |
+| Camera/Gimbal | 15 |
+| Video TX | 3 |
+| Receiver | 0.5 |
+| LEDs | 2 |
+| **Total Hover** | **226.5** |
+
+With 4S 5000mAh (74Wh):
+Flight time = 74 * 0.8 / 226.5 = 15.8 min
+
+#### 7.2 Heavy-Lift Drone (20kg AUW)
+| Component | Power (W) |
+|-----------|-----------|
+| 8x Motors (hover) | 3200 |
+| Flight Controller | 10 |
+| Redundant GPS | 3 |
+| Payload Systems | 50 |
+| Communication | 20 |
+| Lighting | 10 |
+| **Total Hover** | **3293** |
+
+With 12S 22000mAh (977Wh):
+Flight time = 977 * 0.8 / 3293 = 14.2 min
+
+### 8. References
+
+1. Linden, D. & Reddy, T.B. "Handbook of Batteries" McGraw-Hill
+2. Gur, O. & Rosen, A. "Optimizing Electric Propulsion Systems for UAVs"
+3. Traub, L.W. "Range and Endurance Estimates for Battery-Powered Aircraft"
+4. Ampatis, C. & Papadopoulos, E. "Parametric Design and Optimization of Multi-Rotor UAVs"

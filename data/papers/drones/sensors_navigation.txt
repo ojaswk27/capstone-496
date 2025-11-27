@@ -1,0 +1,287 @@
+# UAV Sensors and Navigation Systems
+## Reference Document for Aerospace Design Assistant
+
+### 1. Inertial Measurement Units (IMU)
+
+#### 1.1 MEMS Sensors
+
+Accelerometer specifications:
+- Range: ±2g to ±16g
+- Resolution: 0.1-1 mg
+- Noise density: 50-200 μg/√Hz
+- Bandwidth: 100-1000 Hz
+
+Gyroscope specifications:
+- Range: ±250 to ±2000 °/s
+- Resolution: 0.01-0.1 °/s
+- Noise density: 0.005-0.05 °/s/√Hz
+- Bias stability: 1-10 °/hr
+
+Common IMU chips:
+- MPU-6050: Budget, 6-axis
+- ICM-20689: Mid-range, low noise
+- BMI088: High-performance
+
+#### 1.2 Sensor Fusion
+
+Complementary filter:
+θ = α × (θ + ω×dt) + (1-α) × θ_accel
+
+Where α = τ/(τ + dt), τ = 0.5-2.0 s typically
+
+Madgwick filter:
+- Gradient descent optimization
+- Quaternion representation
+- Computationally efficient
+
+Extended Kalman filter:
+- State: [q, bias_gyro, position, velocity]
+- Fuses IMU + GPS + barometer
+- Higher computational cost
+
+### 2. GPS and GNSS
+
+#### 2.1 GPS Receivers
+
+Standard GPS:
+- Horizontal accuracy: 2-5 m CEP
+- Vertical accuracy: 5-10 m
+- Update rate: 1-10 Hz
+
+Dual-frequency (L1/L2):
+- Horizontal accuracy: 1-2 m
+- Better multipath rejection
+
+RTK GPS:
+- Horizontal accuracy: 1-2 cm
+- Requires base station
+- Update rate: up to 20 Hz
+
+#### 2.2 Integration with IMU
+
+Loosely coupled:
+- GPS provides position/velocity
+- INS provides attitude
+- Separate filters
+
+Tightly coupled:
+- GPS pseudoranges used directly
+- Single Kalman filter
+- Better performance in degraded GPS
+
+#### 2.3 GPS Specifications
+
+Common modules:
+- u-blox NEO-M8N: Standard, 10 Hz
+- u-blox ZED-F9P: RTK capable
+- Here+ RTK: Complete solution
+
+Position update latency: 100-200 ms typical
+Cold start time: 25-35 seconds
+Hot start time: 1-2 seconds
+
+### 3. Barometric Altitude
+
+#### 3.1 Barometer Sensors
+
+Pressure range: 300-1100 hPa (typical)
+Resolution: 0.01-0.1 hPa
+Noise: 0.1-1 Pa RMS
+Temperature sensitivity: Compensated
+
+Altitude from pressure:
+h = 44330 × (1 - (p/p_0)^0.19)
+
+Accuracy: ±0.5-2 m after calibration
+
+Common sensors:
+- BMP280: Budget, ±1 m
+- MS5611: High resolution, ±10 cm
+- BMP388: Low noise, ±8 cm
+
+#### 3.2 Altitude Hold
+
+Altitude Kalman filter:
+- State: [altitude, vertical_velocity, bias]
+- Measurements: Barometer, accelerometer
+- Typical hold accuracy: ±0.5 m
+
+### 4. Magnetometer (Compass)
+
+#### 4.1 Specifications
+
+Range: ±4 to ±16 Gauss
+Resolution: 0.1-1 mGauss
+Noise: 0.5-5 mGauss RMS
+
+Earth's field: 25-65 μT (0.25-0.65 Gauss)
+
+Common sensors:
+- HMC5883L: Legacy, popular
+- QMC5883L: Compatible replacement
+- IST8310: Low noise
+
+#### 4.2 Calibration
+
+Hard iron correction:
+B_corrected = B_measured - B_offset
+
+Soft iron correction:
+B_corrected = A × (B_measured - B_offset)
+
+Where A is a 3×3 correction matrix
+
+Calibration procedure:
+1. Rotate drone in all orientations
+2. Collect sphere of data points
+3. Fit ellipsoid to data
+4. Calculate correction parameters
+
+### 5. Rangefinders
+
+#### 5.1 Ultrasonic
+
+Range: 0.2-5 m
+Resolution: 1-5 cm
+Beam width: 15-45°
+Update rate: 10-50 Hz
+
+Affected by temperature:
+c_sound = 331 + 0.6 × T (m/s)
+
+Common sensors:
+- HC-SR04: Budget, 2-400 cm
+- MaxBotix: Weatherproof, 5 m
+
+#### 5.2 Infrared
+
+Range: 0.1-1.5 m (analog)
+Range: 0.1-8 m (digital lidar)
+Resolution: 1-5 cm
+Beam width: 1-5°
+
+Common sensors:
+- Sharp GP2Y0A21: 10-80 cm
+- VL53L0X: Lidar, 0-2 m
+- TFmini: Lidar, 0.3-12 m
+
+#### 5.3 Lidar
+
+Single point:
+- Range: 0-40 m typical
+- Resolution: 1 cm
+- Update rate: 100-1000 Hz
+
+Scanning (2D/3D):
+- RPLidar A1: 360°, 12 m, 8000 pts/s
+- Velodyne: 3D, 100 m, 300k pts/s
+
+### 6. Optical Flow
+
+#### 6.1 Operating Principle
+
+Velocity estimation from visual motion:
+v_x = (dx/dt) × h / f
+v_y = (dy/dt) × h / f
+
+Where:
+- dx, dy = Pixel displacement
+- h = Height above ground
+- f = Focal length
+
+#### 6.2 Specifications
+
+Resolution: 30×30 to 256×256 pixels
+Update rate: 50-200 Hz
+Range: 0.1-10 m (with rangefinder)
+
+Common sensors:
+- PMW3901: 35×35 px, 240 Hz
+- PX4Flow: 64×64 px, integrated sonar
+- Mateksys 3901-L0X: Complete module
+
+#### 6.3 Limitations
+
+Requires:
+- Texture on ground
+- Altitude measurement
+- Good lighting
+
+Fails with:
+- Uniform surfaces
+- Very low altitude
+- Excessive motion blur
+
+### 7. Visual Navigation
+
+#### 7.1 Camera Types
+
+Global shutter:
+- No rolling shutter distortion
+- Higher cost
+- Preferred for navigation
+
+Rolling shutter:
+- Less expensive
+- Distortion during fast motion
+- Requires compensation
+
+#### 7.2 Visual Odometry
+
+Monocular:
+- Single camera
+- Scale ambiguity
+- Needs initialization
+
+Stereo:
+- Two cameras, known baseline
+- Direct depth measurement
+- Higher processing load
+
+RGB-D:
+- Color + depth (structured light or ToF)
+- Indoor use primarily
+
+#### 7.3 SLAM
+
+Simultaneous Localization and Mapping:
+- Build map while navigating
+- EKF-SLAM, FastSLAM, ORB-SLAM
+- Computationally intensive
+
+### 8. Integration Architecture
+
+#### 8.1 Sensor Redundancy
+
+Triple redundancy:
+- 3× IMU for voting logic
+- 2× GPS for cross-checking
+- Multiple altimeters
+
+Failover logic:
+- Primary → Secondary → Emergency
+
+#### 8.2 Update Rates
+
+| Sensor | Rate (Hz) | Latency (ms) |
+|--------|-----------|--------------|
+| IMU | 250-1000 | 1-4 |
+| Barometer | 50-100 | 10-20 |
+| GPS | 5-20 | 100-200 |
+| Compass | 50-100 | 5-10 |
+| Optical flow | 50-200 | 5-20 |
+| Lidar | 100-500 | 2-10 |
+
+#### 8.3 Data Fusion Hierarchy
+
+High rate (1000 Hz): IMU integration
+Medium rate (100 Hz): Attitude filter
+Low rate (10-50 Hz): Position filter
+
+### 9. References
+
+1. Madgwick, S. "An Efficient Orientation Filter"
+2. Groves, P.D. "Principles of GNSS, Inertial, and Multisensor Navigation"
+3. Scaramuzza, D. "Visual Odometry" Tutorial
+4. PX4 Autopilot Sensor Documentation
+5. ArduPilot Extended Kalman Filter Documentation

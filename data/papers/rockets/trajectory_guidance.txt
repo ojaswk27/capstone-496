@@ -1,0 +1,306 @@
+# Rocket Trajectory Analysis and Guidance
+## Reference Document for Aerospace Design Assistant
+
+### 1. Vertical Flight Analysis
+
+#### 1.1 Equations of Motion
+
+Vertical ascent equation:
+m × dv/dt = T - D - m × g
+
+Where:
+- T = Thrust
+- D = Drag = 0.5 × ρ × v² × Cd × A
+- m = Instantaneous mass = m_0 - ṁ × t
+
+Mass flow rate:
+ṁ = T / (g_0 × I_sp)
+
+#### 1.2 Burnout Conditions
+
+Burnout velocity (vacuum, no gravity):
+v_b = I_sp × g_0 × ln(m_0/m_f)
+
+Burnout velocity (with gravity loss):
+v_b = I_sp × g_0 × ln(m_0/m_f) - g × t_b
+
+Burnout altitude:
+h_b = ∫[0 to t_b] v(t) dt
+
+#### 1.3 Coast Phase
+
+After burnout, ballistic trajectory:
+v(t) = v_b - g × (t - t_b)
+
+Altitude:
+h(t) = h_b + v_b × (t - t_b) - 0.5 × g × (t - t_b)²
+
+Apogee:
+h_apogee = h_b + v_b² / (2 × g)
+
+Time to apogee:
+t_apogee = t_b + v_b / g
+
+### 2. Gravity Turn Trajectory
+
+#### 2.1 Gravity Turn Concept
+
+Rocket gradually pitches over due to gravity.
+No active steering required after initial pitch.
+Efficient path to orbit.
+
+Pitch angle evolution:
+dγ/dt = -(g × cos(γ)) / v
+
+Where γ is the flight path angle.
+
+#### 2.2 Optimal Pitch Program
+
+Initial vertical rise: 100-500 m
+Pitch kick: 1-5° from vertical
+Gravity turn: Passive trajectory
+
+Final pitch at burnout depends on mission:
+- Suborbital: γ = 45-60°
+- LEO: γ ≈ 0° (horizontal)
+
+#### 2.3 Atmospheric Considerations
+
+Maximum dynamic pressure (max-Q):
+q_max = 0.5 × ρ × v²
+
+Typical values:
+- Sounding rockets: 30-50 kPa
+- Orbital rockets: 30-40 kPa
+
+Throttle back through max-Q to limit loads.
+
+### 3. Orbital Injection
+
+#### 3.1 Required Velocity
+
+Circular orbit velocity:
+v_orbit = √(μ/r) = √(g × R_earth × R_earth/r)
+
+At 200 km: v_orbit = 7,784 m/s
+At 400 km: v_orbit = 7,669 m/s
+
+#### 3.2 Velocity Losses
+
+Gravity loss:
+Δv_gravity = ∫ g × sin(γ) dt
+
+Typical: 1,000-1,500 m/s
+
+Drag loss:
+Δv_drag = ∫ (D/m) dt
+
+Typical: 50-200 m/s
+
+Steering loss:
+Δv_steer = 50-200 m/s
+
+Total Δv to LEO:
+Δv_total = v_orbit + Δv_gravity + Δv_drag + Δv_steer
+Δv_total ≈ 9,200-9,500 m/s
+
+#### 3.3 Injection Accuracy
+
+Required accuracy for LEO:
+- Velocity: ±10 m/s
+- Flight path angle: ±0.1°
+- Position: ±1 km
+
+Guidance system must achieve these tolerances.
+
+### 4. Guidance Algorithms
+
+#### 4.1 Explicit Guidance
+
+Pre-programmed pitch schedule:
+γ(t) = f(t) [open-loop]
+
+Simple but not optimal for varying conditions.
+Used for early rockets and model rockets.
+
+#### 4.2 Iterative Guidance
+
+Computes required thrust direction in real-time.
+Converges to optimal trajectory.
+
+Basic algorithm:
+1. Predict burnout conditions
+2. Compare to target
+3. Adjust steering commands
+4. Repeat
+
+#### 4.3 Powered Explicit Guidance (PEG)
+
+Used by Space Shuttle, many modern rockets.
+
+Steering law:
+λ = λ_0 + λ̇ × t
+
+Where λ is the thrust direction.
+
+Computes λ_0 and λ̇ to reach target state.
+
+Terminal guidance:
+- Position: r_target
+- Velocity: v_target
+- Flight path angle: γ_target
+
+### 5. Atmospheric Drag
+
+#### 5.1 Drag Coefficient
+
+Subsonic (M < 0.8):
+Cd ≈ 0.2-0.4 (streamlined)
+
+Transonic (0.8 < M < 1.2):
+Cd increases rapidly
+
+Supersonic (M > 1.2):
+Cd ≈ 0.3-0.6
+
+Hypersonic (M > 5):
+Cd decreases slowly
+
+#### 5.2 Drag Model
+
+Drag force:
+D = 0.5 × ρ × v² × Cd × A_ref
+
+Altitude dependence through ρ:
+ρ = ρ_0 × exp(-h/H)
+
+Where H ≈ 8,500 m (scale height).
+
+#### 5.3 Drag Loss Minimization
+
+Strategies:
+- High thrust-to-weight (shorter time in atmosphere)
+- Optimal trajectory (balance gravity and drag)
+- Streamlined shape
+
+### 6. Model Rocket Trajectory
+
+#### 6.1 Simplified Analysis
+
+Assumptions:
+- Constant thrust during burn
+- Negligible drag (for quick estimate)
+- Constant gravity
+
+Burnout velocity:
+v_b = (T/m_avg - g) × t_b
+
+Where m_avg is average mass during burn.
+
+Coast altitude:
+h_coast = v_b² / (2g)
+
+Total altitude:
+h_total = h_burn + h_coast
+
+#### 6.2 Including Drag
+
+Drag significantly affects altitude.
+
+With drag, use numerical integration:
+dv/dt = (T - D)/m - g
+dh/dt = v
+
+Drag reduces altitude by 20-50% for typical designs.
+
+#### 6.3 Stability During Flight
+
+Weathercock stability:
+CP aft of CG by 1-2 calibers
+
+Overcorrection if too stable (weathercocking).
+
+Optimal stability margin:
+SM = 1.5-2.0 calibers
+
+### 7. Recovery System
+
+#### 7.1 Parachute Sizing
+
+Descent rate equation:
+v_d = √(2 × W / (ρ × Cd × A_chute))
+
+Target descent rate: 4-7 m/s
+
+Parachute drag coefficient:
+- Flat circular: Cd = 0.75-0.8
+- Hemispherical: Cd = 0.9-1.2
+- Cross-form: Cd = 0.6-0.8
+
+Required parachute area:
+A = 2 × W / (ρ × Cd × v_d²)
+
+#### 7.2 Deployment Altitude
+
+High altitude deployment:
+- Longer descent time
+- More drift with wind
+- Gentler deceleration
+
+Low altitude deployment:
+- Higher opening loads
+- Less drift
+- Faster recovery
+
+Optimal: 50-200 m for model rockets
+
+#### 7.3 Ejection Charge Sizing
+
+Black powder charge:
+m_bp = P × V / (C × T × R)
+
+Where:
+- P = Desired pressure (10-15 psi)
+- V = Ejection volume
+- C = Gas constant factor
+- T = Temperature
+- R = Gas constant
+
+Typical: 0.5-2.0 grams for model rockets
+
+### 8. Sounding Rocket Missions
+
+#### 8.1 Altitude Requirements
+
+Different experiments require different altitudes:
+- 80-120 km: Mesosphere studies
+- 120-300 km: Ionosphere research
+- 300-1000 km: Radiation belt studies
+- >1000 km: Astronomy
+
+#### 8.2 Payload Time
+
+Time above altitude h:
+t_above = 2 × √(2 × (h_apogee - h) / g)
+
+For 100 km apogee, time above 80 km ≈ 4 minutes
+
+Microgravity time:
+t_μg = 2 × h_apogee / v_max
+
+#### 8.3 Typical Sounding Rockets
+
+| Rocket | Altitude (km) | Payload (kg) |
+|--------|---------------|--------------|
+| Black Brant V | 150 | 70 |
+| Terrier-Orion | 200 | 40 |
+| Nike-Orion | 150 | 50 |
+| VS-30 | 150 | 50 |
+
+### 9. References
+
+1. Sutton, G.P. "Rocket Propulsion Elements"
+2. Turner, M.J.L. "Rocket and Spacecraft Propulsion"
+3. Wiesel, W.E. "Spaceflight Dynamics"
+4. Battin, R.H. "An Introduction to the Mathematics and Methods of Astrodynamics"
+5. NASA Sounding Rocket Handbook

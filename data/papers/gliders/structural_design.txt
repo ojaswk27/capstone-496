@@ -1,0 +1,350 @@
+# Glider Structural Design
+## Reference Document for Aerospace Design Assistant
+
+### 1. Design Load Cases
+
+#### 1.1 Flight Envelope
+
+Limit load factors (Utility):
+- Positive: +5.3g at V_A
+- Negative: -2.65g at V_A
+- Positive: +4.0g at V_D
+- Negative: -1.5g at V_D
+
+Ultimate load: 1.5 × Limit load
+
+Reference speeds:
+- V_S: Stall speed (1g)
+- V_A: Maneuvering speed
+- V_NE: Never exceed speed
+- V_W: Winch launch speed
+
+#### 1.2 Gust Loads
+
+Sharp-edge gust formula:
+Δn = (K_g × ρ × V × U_de × a)/(2 × W/S)
+
+Where:
+- K_g = Gust alleviation factor
+- U_de = Derived gust velocity (±15 m/s at V_C)
+- a = Lift curve slope
+
+Gust critical cases:
+- Maximum gust at V_C
+- Maximum gust at V_D (reduced gust)
+
+#### 1.3 Ground Loads
+
+Winch launch:
+- Vertical: 4-5g
+- Horizontal: 2-3g forward
+- Asymmetric side loads
+
+Aerotow:
+- Lower loads than winch
+- Towline failure case
+
+Landing:
+- 2-3g vertical at touchdown
+- Side load for crosswind
+
+### 2. Wing Structure
+
+#### 2.1 Spar Design
+
+Main spar carries:
+- Bending moment (caps)
+- Shear (web)
+
+Bending moment distribution:
+M(y) = L_total × y × (1 - 2y/b)²/4 (approximate for elliptical)
+
+Spar cap stress:
+σ = M × h/2 / I
+
+Cap material typically:
+- Carbon fiber unidirectional
+- Tensile strength: 1500+ MPa
+- Design allowable: 500-800 MPa
+
+#### 2.2 Wing Skin
+
+Functions:
+- Aerodynamic surface
+- Shear load path
+- Torsion resistance
+
+Construction:
+- Fiberglass ±45° layers (most gliders)
+- Carbon for high-performance
+- Sandwich with foam or honeycomb core
+
+Minimum thickness:
+- Leading edge: 1-2 mm fiberglass
+- Mid-chord: Sandwich, 10-20 mm total
+- Trailing edge: 0.5-1 mm
+
+#### 2.3 Torsion Box
+
+Closed section for torsion:
+τ = T / (2 × A_enclosed × t)
+
+Shear flow:
+q = T / (2 × A_enclosed)
+
+D-box construction:
+- Leading edge to spar
+- Skin carries torsion
+- Efficient for composite wings
+
+#### 2.4 Wing-Fuselage Connection
+
+Types:
+- Spar carry-through (single piece)
+- Wing root fittings (detachable)
+
+Fitting loads:
+- Vertical shear: Full lift
+- Fore-aft: Drag + pitching moment
+- Torsion: Wing twisting loads
+
+Typical hardware:
+- Steel or titanium pins
+- 4140 or 4340 steel common
+- Bushing for wear
+
+### 3. Fuselage Structure
+
+#### 3.1 Loads
+
+Bending:
+- Tail loads
+- Landing gear loads
+- Inertia loads
+
+Torsion:
+- Asymmetric tail loads
+- Aileron-rudder coupling
+
+Concentrated loads:
+- Wing attachment
+- Landing gear
+- Cockpit/canopy
+
+#### 3.2 Construction Types
+
+Monocoque:
+- Shell carries all loads
+- Simple for composites
+- Common for gliders
+
+Semi-monocoque:
+- Shell + frames/bulkheads
+- Concentrated load introduction
+
+Typical materials:
+- Fiberglass/epoxy skin
+- Aramid (Kevlar) in impact areas
+- Carbon for stiffness
+
+#### 3.3 Cockpit Area
+
+Requirements:
+- Crashworthiness (15-20g forward)
+- Visibility
+- Ergonomics
+
+Canopy:
+- Acrylic or polycarbonate
+- Jettison capability
+- Sealing for aerodynamics
+
+### 4. Tail Structure
+
+#### 4.1 Horizontal Tail
+
+Design loads:
+- Balancing loads (trim)
+- Maneuvering loads
+- Gust loads
+
+All-moving (stabilator):
+- Common on high-performance
+- Less drag
+- More complex actuation
+
+Fixed stabilizer + elevator:
+- Simpler
+- Training gliders
+
+#### 4.2 Vertical Tail
+
+Design loads:
+- Sideslip: β_max at V_A
+- Rudder kicks
+- Spin recovery
+
+T-tail considerations:
+- Flutter (tail-fuselage)
+- Deep stall possibility
+- Higher loads on vertical
+
+#### 4.3 Control Surfaces
+
+Hinge moments:
+H = q × S × c × C_h
+
+Where C_h = Hinge moment coefficient
+
+Mass balance:
+- Prevent flutter
+- Weight forward of hinge
+- Static and dynamic balance
+
+### 5. Landing Gear
+
+#### 5.1 Main Wheel
+
+Location:
+- Near CG for ground handling
+- Retractable on high-performance
+
+Shock absorption:
+- Rubber donuts
+- Oleo (rare on gliders)
+- Tire deflection
+
+Design loads:
+- Sink rate: 0.5-1.0 m/s typical
+- Load factor: 2-3g at wheel
+
+#### 5.2 Tail/Nose Wheel
+
+Tailwheel (conventional):
+- Simple, light
+- Most gliders
+- Ground loop tendency
+
+Nose wheel:
+- Better ground handling
+- Heavier
+- Some training gliders
+
+#### 5.3 Wing Tip Protection
+
+Tip skids/wheels:
+- Ground contact during taxi
+- Protect wing tip
+- Replaceable wear items
+
+### 6. Material Selection
+
+#### 6.1 Composite Properties
+
+E-glass/epoxy:
+- Density: 1.9 g/cm³
+- Tensile strength: 500-700 MPa
+- Modulus: 25-35 GPa
+- Good impact resistance
+
+Carbon/epoxy (UD):
+- Density: 1.55 g/cm³
+- Tensile strength: 1500-2000 MPa
+- Modulus: 130-150 GPa
+- Brittle in impact
+
+Aramid (Kevlar)/epoxy:
+- Density: 1.4 g/cm³
+- Tensile strength: 1200-1400 MPa
+- Excellent impact resistance
+- Difficult to machine
+
+#### 6.2 Core Materials
+
+PVC foam (Divinycell):
+- Density: 40-200 kg/m³
+- Shear strength: 0.5-3.5 MPa
+- Good fatigue properties
+
+Honeycomb (Nomex):
+- Density: 30-130 kg/m³
+- Higher shear strength
+- More expensive
+
+Styrofoam:
+- Low cost
+- Lower properties
+- Used in wing cores
+
+#### 6.3 Metal Components
+
+Steel (4130, 4340):
+- Landing gear
+- Fittings
+- Control system parts
+
+Aluminum (2024, 6061):
+- Non-structural items
+- Some fittings
+- Control pushrods
+
+Titanium:
+- High-load fittings
+- Weight critical areas
+
+### 7. Manufacturing Considerations
+
+#### 7.1 Composite Layup
+
+Hand layup:
+- Most common
+- Labor intensive
+- Variable quality
+
+Prepreg:
+- Consistent properties
+- Higher cost
+- Requires autoclave/oven
+
+Infusion:
+- Good fiber/resin ratio
+- Complex setup
+- Growing use
+
+#### 7.2 Tolerances
+
+Aerodynamic surfaces:
+- Profile: ±0.5 mm
+- Waviness: <0.5 mm/100 mm
+- Joints: Flush ±0.2 mm
+
+Structural:
+- Spar alignment: ±1 mm
+- Hole location: ±0.1 mm
+- Bushing fit: H7/g6
+
+### 8. Weight Targets
+
+#### 8.1 Weight Breakdown (18m Standard Class)
+
+| Component | Weight (kg) | % Total |
+|-----------|-------------|---------|
+| Wing (pair) | 95 | 35% |
+| Fuselage | 60 | 22% |
+| Tail assembly | 18 | 7% |
+| Landing gear | 15 | 5% |
+| Controls | 12 | 4% |
+| Instruments | 10 | 4% |
+| Fixed equipment | 15 | 5% |
+| **Empty weight** | **225** | **82%** |
+| Pilot | 80 | - |
+| Water ballast | 0-150 | - |
+| **Max weight** | **525** | - |
+
+### 9. References
+
+1. Thomas, F. "Fundamentals of Sailplane Design"
+2. Abbott & Von Doenhoff "Theory of Wing Sections"
+3. EASA CS-22 Certification Specifications for Sailplanes
+4. LBA Bauvorschriften für Segelflugzeuge
+5. Schempp-Hirth Design Notes

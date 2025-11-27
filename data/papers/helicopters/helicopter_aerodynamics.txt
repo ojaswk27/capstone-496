@@ -1,0 +1,282 @@
+# Helicopter Aerodynamics and Design
+## Reference Document for Aerospace Design Assistant
+
+### 1. Rotor Aerodynamics Fundamentals
+
+#### 1.1 Momentum Theory for Hover
+
+Thrust in hover:
+T = 2 * ρ * A * v_i²
+
+Induced velocity:
+v_i = √(T / (2 * ρ * A)) = √(DL / (2 * ρ))
+
+Where:
+- A = Rotor disk area = π * R²
+- DL = Disk loading = T / A
+
+Ideal hover power:
+P_ideal = T * v_i = T^(3/2) / √(2 * ρ * A)
+
+Power loading:
+PL = T / P (N/W)
+
+For ideal rotor: PL_ideal = √(2 * ρ / DL)
+
+#### 1.2 Figure of Merit
+
+The Figure of Merit compares actual to ideal performance:
+FM = P_ideal / P_actual = T^(3/2) / (P * √(2 * ρ * A))
+
+Typical values:
+- Small rotors (drones): FM = 0.5-0.65
+- Model helicopters: FM = 0.6-0.7
+- Full-scale helicopters: FM = 0.7-0.8
+- Optimized rotors: FM = 0.8-0.85
+
+#### 1.3 Blade Element Analysis
+
+Elemental thrust:
+dT = 0.5 * ρ * U² * c * C_l * dr
+
+Where U is the local velocity:
+U = Ω * r (in hover)
+
+Total thrust:
+T = N_b * ∫[0 to R] 0.5 * ρ * (Ω*r)² * c * C_l * dr
+
+Blade loading coefficient:
+C_T / σ = (T / (ρ * A * V_tip²)) / σ
+
+Where σ = N_b * c / (π * R) is solidity.
+
+### 2. Forward Flight Aerodynamics
+
+#### 2.1 Advance Ratio
+
+Advance ratio:
+μ = V_∞ * cos(α) / (Ω * R)
+
+Where α is the rotor disk angle of attack.
+
+Typical values:
+- Hover: μ = 0
+- Cruise: μ = 0.3-0.4
+- High speed: μ = 0.4-0.5
+
+#### 2.2 Induced Velocity in Forward Flight
+
+Glauert's formula:
+v_i = v_h / √(μ² + λ²)
+
+Where:
+- v_h = Hover induced velocity
+- λ = v_i / (Ω * R)
+
+At high speed (μ > 0.15):
+v_i ≈ v_h² / V_∞ = T / (2 * ρ * A * V_∞)
+
+#### 2.3 Power Components
+
+Total power:
+P_total = P_induced + P_profile + P_parasite + P_climb
+
+Induced power:
+P_i = T * v_i
+
+Profile power (blade drag):
+P_0 = (σ * C_d0 / 8) * ρ * A * (Ω*R)³ * (1 + 4.65*μ²)
+
+Parasite power:
+P_p = 0.5 * ρ * V³ * f
+
+Where f is the equivalent flat plate area.
+
+### 3. Rotor Design Parameters
+
+#### 3.1 Disk Loading
+
+Disk loading selection:
+DL = T / A = W / (π * R²)
+
+Typical values:
+- Light helicopters: 150-250 N/m²
+- Medium helicopters: 250-400 N/m²
+- Heavy helicopters: 400-600 N/m²
+- Tiltrotors: 500-700 N/m²
+
+Lower DL = better hover efficiency, larger rotor.
+
+#### 3.2 Tip Speed
+
+Tip speed:
+V_tip = Ω * R
+
+Typical values: 180-220 m/s
+
+Constraints:
+- Upper limit: Compressibility (M_tip < 0.9)
+- Lower limit: Retreating blade stall
+- Noise: Lower tip speed reduces noise
+
+#### 3.3 Solidity
+
+Blade solidity:
+σ = N_b * c / (π * R)
+
+Typical values:
+- Light helicopters: σ = 0.05-0.08
+- Medium helicopters: σ = 0.07-0.10
+- Heavy helicopters: σ = 0.10-0.14
+
+Higher solidity delays stall but increases profile drag.
+
+#### 3.4 Blade Twist
+
+Linear twist:
+θ(r) = θ_0 + θ_tw * (r/R)
+
+Optimal twist for hover: θ_tw = -8° to -15°
+Typical twist: -8° to -12° (root to tip)
+
+### 4. Stability and Control
+
+#### 4.1 Rotor Control
+
+Collective pitch:
+- Changes thrust magnitude
+- All blades equally
+
+Cyclic pitch:
+- Longitudinal: pitch control
+- Lateral: roll control
+- 90° phase lag (gyroscopic precession)
+
+Swashplate mechanics:
+θ(ψ) = θ_0 + A_1c * cos(ψ) + B_1s * sin(ψ)
+
+#### 4.2 Tail Rotor Sizing
+
+Anti-torque requirement:
+T_tr * l_tr = Q_mr
+
+Where Q_mr is main rotor torque.
+
+Tail rotor thrust:
+T_tr = P_mr / (Ω_mr * l_tr)
+
+Tail rotor power: typically 8-15% of main rotor power.
+
+#### 4.3 Autorotation
+
+In autorotation, rotor extracts energy from airflow.
+
+Rate of descent:
+V_d = √(DL / (2 * ρ)) * (C_T / C_P)^(1/2)
+
+Typical values: 5-15 m/s
+
+Autorotation index:
+AI = (I_b * Ω²) / (W * V_d)
+
+Higher AI = more rotor energy = safer autorotation.
+
+### 5. Performance Calculations
+
+#### 5.1 Hover Ceiling
+
+Out of ground effect (OGE) hover:
+P_required = P_i + P_0 = (T^1.5 / √(2*ρ*A)) / FM + P_0
+
+Ceiling where P_available = P_required.
+
+In ground effect (IGE):
+P_IGE / P_OGE = 1 - (R / (4*z))² for z > R
+
+Where z is height above ground.
+
+#### 5.2 Forward Flight Performance
+
+Maximum speed limited by:
+- Retreating blade stall: V_max ≈ V_tip - V_stall_margin
+- Available power
+- Advancing tip Mach number
+
+Never-exceed speed (V_NE):
+V_NE ≈ V_tip * (1 - M_limit) - V_buffer
+
+#### 5.3 Range and Endurance
+
+Specific range:
+SR = V / ṁ_fuel = V * η / (SFC * P)
+
+Maximum range at speed where P/V is minimum.
+
+Endurance:
+E = Fuel / ṁ_fuel = Fuel / (SFC * P)
+
+Maximum endurance at minimum power speed.
+
+### 6. Weight Estimation
+
+#### 6.1 Component Weight Fractions
+
+For preliminary design:
+- Rotor group: 8-12% of MTOW
+- Fuselage: 12-18% of MTOW
+- Landing gear: 3-5% of MTOW
+- Powerplant: 10-15% of MTOW
+- Drive system: 8-12% of MTOW
+- Flight controls: 3-5% of MTOW
+- Fuel system: 1-2% of MTOW
+- Equipment: 5-10% of MTOW
+
+Empty weight fraction: 0.50-0.60 of MTOW
+
+#### 6.2 Blade Weight
+
+Blade weight estimation:
+W_blade ≈ K * ρ_blade * c * t * R²
+
+Where t is blade thickness ratio.
+
+Typical blade mass: 2-4% of MTOW per blade.
+
+### 7. Example Helicopters
+
+#### 7.1 Robinson R22
+- Main rotor diameter: 7.67 m
+- Disk loading: 112 N/m²
+- Tip speed: 205 m/s
+- Solidity: 0.0347
+- Engine: 124 hp
+- MTOW: 622 kg
+- Hover ceiling (OGE): 2,650 m
+- Cruise speed: 96 kt
+
+#### 7.2 Bell 206
+- Main rotor diameter: 10.16 m
+- Disk loading: 186 N/m²
+- Tip speed: 214 m/s
+- Solidity: 0.0463
+- Engine: 420 shp
+- MTOW: 1,520 kg
+- Hover ceiling (OGE): 3,350 m
+- Cruise speed: 122 kt
+
+#### 7.3 UH-60 Black Hawk
+- Main rotor diameter: 16.36 m
+- Disk loading: 431 N/m²
+- Tip speed: 221 m/s
+- Solidity: 0.0826
+- Engines: 2 × 1,890 shp
+- MTOW: 9,979 kg
+- Cruise speed: 150 kt
+
+### 8. References
+
+1. Leishman, J.G. "Principles of Helicopter Aerodynamics" Cambridge
+2. Johnson, W. "Helicopter Theory" Princeton University Press
+3. Prouty, R.W. "Helicopter Performance, Stability, and Control"
+4. Padfield, G.D. "Helicopter Flight Dynamics" Blackwell
+5. Seddon, J. "Basic Helicopter Aerodynamics" AIAA

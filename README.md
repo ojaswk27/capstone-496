@@ -56,7 +56,7 @@ I plan to execute these steps to complete my project.
 
 - [TODO] Step 1 involves setting up the project - fork the template repo, install langchain, langgraph, langsmith, and FAISS/ChromaDB, set up API keys. Done!
 
-- [TODO] Step 2 involves collecting research papers - download 30-40 papers from arXiv and NASA on drones, planes, helicopters, rockets, and satellites, organize them by vehicle type
+- [TODO] Step 2 involves collecting research papers - download 30-40 papers from arXiv and NASA on drones, planes, helicopters, rockets, and satellites, organize them by vehicle type. Done, a lot harder than expected, had to use multiple layerd RAG apps to fetch, read, filter and arrange bits of data that I will need. 
 
 - [TODO] Step 3 involves building semantic search - extract text from PDFs, create embeddings, set up vector database, test if search actually finds relevant papers
 

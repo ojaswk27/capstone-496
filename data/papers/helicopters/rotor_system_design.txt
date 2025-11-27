@@ -1,0 +1,348 @@
+# Helicopter Rotor System Design
+## Reference Document for Aerospace Design Assistant
+
+### 1. Rotor Configuration Types
+
+#### 1.1 Single Main Rotor with Tail Rotor
+
+Most common configuration:
+- Main rotor provides lift and propulsion
+- Tail rotor provides anti-torque and yaw control
+- Tail rotor power: 8-15% of main rotor power
+
+Advantages:
+- Simple, well-understood
+- Efficient hover
+- Good autorotation characteristics
+
+Disadvantages:
+- Tail rotor vulnerable
+- Asymmetric in sideward flight
+- Tail boom length and weight
+
+#### 1.2 Tandem Rotors
+
+Two main rotors in line (CH-47 Chinook):
+- Counter-rotating to cancel torque
+- No tail rotor needed
+- Good for heavy lift
+
+Rotor overlap typically 30-50%
+Interference effects require careful design
+
+#### 1.3 Coaxial Rotors
+
+Two rotors on same axis (Ka-52):
+- Counter-rotating
+- Compact footprint
+- Higher hover efficiency
+
+Swashplate complexity doubled
+Mechanical complexity high
+
+#### 1.4 Intermeshing (Synchropter)
+
+Two rotors that mesh (K-MAX):
+- Tilted rotor shafts
+- No tail rotor
+- Good for external loads
+
+Limited forward speed
+Complex transmission
+
+### 2. Blade Design
+
+#### 2.1 Blade Planform
+
+Rectangular:
+- Simple construction
+- Higher induced losses
+- Common for smaller helicopters
+
+Tapered:
+- Root to tip taper ratio: 2:1 to 3:1
+- Better hover efficiency
+- More complex construction
+
+Swept tips:
+- Delay compressibility effects
+- Reduce noise
+- Parabolic or BERP-type tips
+
+#### 2.2 Blade Twist
+
+Linear twist:
+θ(r) = θ_root + θ_tw × (r - r_root)/(R - r_root)
+
+Optimal twist for hover: θ_tw = -8° to -15°
+Compromise for forward flight: θ_tw = -8° to -10°
+
+Non-linear twist:
+- Hyperbolic distribution
+- Better hover efficiency
+- Manufacturing complexity
+
+#### 2.3 Blade Airfoils
+
+Root section:
+- Thick (12-15% t/c)
+- High C_L_max
+- Structural depth
+
+Mid-span:
+- Moderate thickness (9-12% t/c)
+- Low drag
+- Good L/D
+
+Tip section:
+- Thin (6-9% t/c)
+- High drag divergence Mach
+- Supercritical profiles
+
+Common airfoils:
+- NACA 0012: Traditional, symmetric
+- SC1095: Boeing advanced
+- VR-series: Sikorsky designs
+- OA-series: ONERA French designs
+
+#### 2.4 Blade Construction
+
+Spar types:
+- D-spar (leading edge)
+- Box spar
+- C-spar
+
+Materials:
+- Aluminum: Traditional, fatigue limited
+- Fiberglass: Damage tolerant, heavier
+- Carbon fiber: Highest performance
+
+Typical construction:
+- Carbon/epoxy spar
+- Nomex honeycomb core
+- Fiberglass skin
+- Erosion protection at leading edge
+
+### 3. Hub Design
+
+#### 3.1 Articulated Hub
+
+Features:
+- Flap hinge (out-of-plane motion)
+- Lag hinge (in-plane motion)
+- Pitch bearing (collective/cyclic)
+
+Lead-lag dampers required
+Complex but well-understood
+Example: UH-60 Black Hawk
+
+#### 3.2 Teetering (Semi-Rigid) Hub
+
+Features:
+- Teetering hinge for flapping
+- No lag hinges
+- Underslung for stability
+
+Simple, lightweight
+Two blades only
+Example: Bell 206, Robinson R22
+
+Coning angle:
+β_0 = (γ/8) × (C_T/σ) × (1 + 8/3 × μ²)
+
+#### 3.3 Hingeless (Rigid) Hub
+
+Features:
+- Blades attached rigidly to hub
+- Flapping by blade bending
+- High control power
+
+Blade root highly stressed
+Good handling qualities
+Example: Bo-105, AH-64 Apache
+
+Virtual hinge offset:
+e = 0.1 to 0.15 R equivalent
+
+#### 3.4 Bearingless Hub
+
+Features:
+- Flexbeam replaces hinges and bearings
+- Composite construction
+- Minimum parts count
+
+Low maintenance
+Complex analysis
+Example: MD Explorer, Eurocopter EC135
+
+### 4. Rotor Dynamics
+
+#### 4.1 Flapping Equation
+
+Equation of motion for flapping:
+I_β × β̈ + M_β × β = M_aero + M_inertia
+
+Natural frequency:
+ω_β = √(1 + M_β_spring/(I_β × Ω²)) × Ω
+
+For articulated rotor (no spring):
+ω_β = Ω (1/rev)
+
+For hingeless rotor:
+ω_β = 1.05-1.15 × Ω
+
+#### 4.2 Lead-Lag Motion
+
+Lead-lag natural frequency:
+ω_ζ = √(e × Ω² + k_ζ/I_ζ)
+
+For articulated with hinge offset e:
+ω_ζ ≈ √(3e/2) × Ω
+
+Ground resonance:
+- Coupling between lead-lag and fuselage
+- Can be destructive
+- Requires damping
+
+#### 4.3 Blade Frequencies
+
+Avoid resonance with:
+- 1/rev (once per revolution)
+- N/rev (N = number of blades)
+- Higher harmonics
+
+Fan plot (Campbell diagram):
+- Frequency vs rotor speed
+- Identify resonance crossings
+- Place crossings outside operating range
+
+### 5. Control System
+
+#### 5.1 Swashplate Mechanics
+
+Non-rotating portion:
+- Connected to pilot controls
+- Collective (up/down)
+- Cyclic (tilt)
+
+Rotating portion:
+- Pitch links to blades
+- Follows swashplate motion
+
+Phase angle:
+- Typically 90° lead
+- Input at azimuth ψ produces response at ψ + 90°
+
+#### 5.2 Control Mixing
+
+Collective input θ_0:
+- All blades change pitch equally
+- Controls thrust magnitude
+
+Longitudinal cyclic A_1s:
+- Pitch varies sinusoidally
+- Controls pitch attitude (after phase lag)
+
+Lateral cyclic B_1s:
+- Pitch varies sinusoidally (90° phase)
+- Controls roll attitude
+
+#### 5.3 Tail Rotor Control
+
+Anti-torque:
+T_TR × l_TR = Q_MR
+
+Pedal input changes tail rotor collective:
+- Right pedal: increase pitch, more thrust
+- Left pedal: decrease pitch, less thrust
+
+Some designs use:
+- Fenestron (ducted fan)
+- NOTAR (no tail rotor)
+
+### 6. Vibration
+
+#### 6.1 Sources
+
+Blade passage frequency: N × Ω
+- N-bladed rotor: N/rev vibration dominant
+
+Rotor harmonics:
+- 1/rev from imbalance
+- N/rev from blade passage
+- 2N/rev higher harmonics
+
+#### 6.2 Reduction Methods
+
+Blade tracking:
+- Adjust blade pitch at rest
+- Minimize track split
+
+Dynamic balance:
+- Add weights to rotor
+- Minimize 1/rev
+
+Vibration absorbers:
+- Tuned mass dampers
+- Active vibration control
+- Isolation mounts
+
+Higher harmonic control:
+- Active blade pitch
+- Reduces transmitted vibration
+
+### 7. Performance Parameters
+
+#### 7.1 Design Point Selection
+
+Typical ranges:
+| Parameter | Range |
+|-----------|-------|
+| Disk loading | 150-600 N/m² |
+| Blade loading C_T/σ | 0.08-0.12 |
+| Tip speed | 180-220 m/s |
+| Solidity σ | 0.05-0.12 |
+
+#### 7.2 Blade Number Selection
+
+2 blades: Simple, teetering, light helicopters
+3 blades: Good compromise, less vibration
+4 blades: Lower vibration, medium helicopters
+5+ blades: Large helicopters, heavy lift
+
+More blades:
+- Lower vibration
+- Higher solidity possible
+- More complex hub
+- Higher weight
+
+### 8. Example Rotor Systems
+
+#### 8.1 Robinson R22
+- 2 blades, teetering
+- Diameter: 7.67 m
+- Solidity: 0.0347
+- Tip speed: 205 m/s
+- Disk loading: 112 N/m²
+
+#### 8.2 Bell 206
+- 2 blades, teetering
+- Diameter: 10.16 m
+- Solidity: 0.0463
+- Tip speed: 214 m/s
+- Disk loading: 186 N/m²
+
+#### 8.3 UH-60 Black Hawk
+- 4 blades, articulated
+- Diameter: 16.36 m
+- Solidity: 0.0826
+- Tip speed: 221 m/s
+- Disk loading: 431 N/m²
+
+### 9. References
+
+1. Leishman, J.G. "Principles of Helicopter Aerodynamics"
+2. Johnson, W. "Rotorcraft Aeromechanics"
+3. Bramwell, A.R.S. "Helicopter Dynamics"
+4. Stepniewski, W.Z. "Rotary-Wing Aerodynamics"
+5. Prouty, R.W. "Helicopter Performance, Stability, and Control"

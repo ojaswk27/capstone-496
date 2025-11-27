@@ -1,0 +1,288 @@
+# Satellite Attitude Determination and Control
+## Reference Document for Aerospace Design Assistant
+
+### 1. Attitude Representations
+
+#### 1.1 Euler Angles
+
+Roll-Pitch-Yaw (3-2-1 sequence):
+R = R_z(ψ) × R_y(θ) × R_x(φ)
+
+Rotation matrix:
+R = [cos(ψ)cos(θ)  cos(ψ)sin(θ)sin(φ)-sin(ψ)cos(φ)  cos(ψ)sin(θ)cos(φ)+sin(ψ)sin(φ)]
+    [sin(ψ)cos(θ)  sin(ψ)sin(θ)sin(φ)+cos(ψ)cos(φ)  sin(ψ)sin(θ)cos(φ)-cos(ψ)sin(φ)]
+    [-sin(θ)       cos(θ)sin(φ)                       cos(θ)cos(φ)                    ]
+
+Singularity at θ = ±90° (gimbal lock)
+
+#### 1.2 Quaternions
+
+Unit quaternion: q = [q_0, q_1, q_2, q_3]^T
+Constraint: q_0² + q_1² + q_2² + q_3² = 1
+
+Rotation matrix from quaternion:
+R = [1-2(q_2²+q_3²)  2(q_1q_2-q_0q_3)  2(q_1q_3+q_0q_2)]
+    [2(q_1q_2+q_0q_3)  1-2(q_1²+q_3²)  2(q_2q_3-q_0q_1)]
+    [2(q_1q_3-q_0q_2)  2(q_2q_3+q_0q_1)  1-2(q_1²+q_2²)]
+
+Quaternion multiplication:
+q_1 ⊗ q_2 = [q_10q_20-q_1·q_2, q_10q_2+q_20q_1+q_1×q_2]^T
+
+Kinematic equation:
+q̇ = 0.5 × Ω(ω) × q
+
+Where Ω is the quaternion rate matrix.
+
+#### 1.3 Direction Cosine Matrix
+
+Properties:
+- R^T × R = I
+- det(R) = 1
+- R^(-1) = R^T
+
+Kinematic equation:
+Ṙ = R × [ω]×
+
+Where [ω]× is the skew-symmetric matrix of angular velocity.
+
+### 2. Attitude Sensors
+
+#### 2.1 Sun Sensors
+
+Coarse sun sensor (CSS):
+- Accuracy: 1-5°
+- FOV: Hemispherical
+- Simple photodiodes
+
+Fine sun sensor (FSS):
+- Accuracy: 0.01-0.1°
+- FOV: 30-60°
+- More complex optics
+
+Sun vector in body frame provides two-axis attitude information.
+
+#### 2.2 Earth Horizon Sensors
+
+Infrared horizon sensor:
+- Accuracy: 0.1-1°
+- Works in eclipse
+- Provides nadir direction
+
+Horizon crossing indicator:
+- Simple, reliable
+- Lower accuracy
+- Used for spin-stabilized satellites
+
+#### 2.3 Star Trackers
+
+Accuracy: 1-10 arcseconds (0.0003-0.003°)
+Update rate: 1-10 Hz
+FOV: 10-20°
+
+Three-axis attitude from single sensor.
+Most accurate attitude sensor available.
+
+Lost-in-space capability:
+- Star catalog matching
+- No a priori attitude required
+
+#### 2.4 Magnetometers
+
+Three-axis magnetic field measurement.
+Accuracy: 0.5-2° (after calibration)
+Requires magnetic field model (IGRF/WMM).
+
+Provides two-axis information.
+Best combined with other sensors.
+
+#### 2.5 Gyroscopes
+
+Rate measurement:
+- MEMS: 0.1-10 °/hr drift
+- FOG: 0.001-0.1 °/hr drift
+- RLG: 0.0001-0.01 °/hr drift
+- HRG: <0.001 °/hr drift
+
+Integration for attitude:
+θ(t) = θ(0) + ∫ω dt
+
+Drift accumulation requires periodic updates.
+
+### 3. Attitude Determination
+
+#### 3.1 TRIAD Algorithm
+
+Two vector measurements (e.g., sun and magnetic field):
+v_1b, v_2b (body frame)
+v_1i, v_2i (inertial frame)
+
+Construct triads:
+t_1 = v_1
+t_2 = v_1 × v_2 / |v_1 × v_2|
+t_3 = t_1 × t_2
+
+Rotation matrix:
+R = [t_1b t_2b t_3b] × [t_1i t_2i t_3i]^T
+
+#### 3.2 QUEST Algorithm
+
+Optimal single-frame attitude determination.
+Minimize cost function:
+J = Σ a_i × |v_ib - R × v_ii|²
+
+Solution via quaternion eigenvalue problem.
+More accurate than TRIAD.
+
+#### 3.3 Extended Kalman Filter
+
+State vector: x = [q, ω, b_gyro]^T
+
+Prediction:
+x_k+1 = f(x_k, u_k) + w_k
+
+Update:
+x_k = x_k- + K(z_k - h(x_k-))
+
+Fuses gyro data with vector measurements.
+Estimates gyro bias.
+Standard approach for high-accuracy systems.
+
+### 4. Attitude Control
+
+#### 4.1 Disturbance Torques
+
+Gravity gradient:
+T_gg = (3μ/r³) × (n̂ × I × n̂)
+Max for LEO: ~10⁻⁶ N·m (small sat)
+
+Magnetic:
+T_mag = m × B
+m = residual magnetic moment
+Typical: 10⁻⁵ to 10⁻⁴ N·m
+
+Aerodynamic (LEO):
+T_aero = 0.5 × ρ × V² × C_D × A × (r_cp - r_cm)
+Altitude dependent: 10⁻⁷ to 10⁻⁴ N·m
+
+Solar radiation pressure:
+T_srp = (S/c) × A × (r_cp - r_cm) × cos(θ)
+Typical: 10⁻⁷ to 10⁻⁵ N·m
+
+#### 4.2 Reaction Wheels
+
+Torque: τ = I_w × ω̇_w
+Momentum: H = I_w × ω_w
+
+Wheel sizing:
+H_max > T_disturbance × T_orbit / 4
+
+Typical specifications:
+- Momentum: 0.1-50 N·m·s
+- Torque: 0.01-0.5 N·m
+- Power: 1-50 W
+
+Configuration:
+- 3 wheels: No redundancy
+- 4 wheels: Pyramid configuration
+- 4+ wheels: Full redundancy
+
+Momentum management required (magnetic torquers, thrusters).
+
+#### 4.3 Control Moment Gyros
+
+Single gimbal CMG:
+τ = H × ω_gimbal
+
+Output torque >> input torque.
+Used for large satellites, space stations.
+Singularity management required.
+
+#### 4.4 Magnetic Torquers
+
+Torque: τ = m × B
+m = N × I × A (magnetic dipole moment)
+
+Limitations:
+- Only perpendicular to B field
+- Weak near equator (B parallel to orbit)
+- Combined with other actuators
+
+Sizing:
+m_max > T_max / B_min
+
+Typical: 0.1-10 A·m² for small sats
+
+#### 4.5 Thrusters
+
+Torque: τ = F × r (moment arm)
+
+Advantages:
+- Works in any orientation
+- High torque available
+
+Disadvantages:
+- Consumables required
+- Complex plumbing
+- Coupling with translation
+
+Used for:
+- Slew maneuvers
+- Momentum dumping
+- Large angle pointing
+
+### 5. Control System Design
+
+#### 5.1 PD Control
+
+τ_cmd = -K_p × q_error - K_d × ω
+
+Quaternion error:
+q_error = q_cmd^(-1) ⊗ q_actual
+
+Typical gains:
+K_p = 4 × I × ω_n²
+K_d = 4 × I × ζ × ω_n
+
+Where:
+- ω_n = Natural frequency
+- ζ = Damping ratio (0.7-1.0)
+
+#### 5.2 Momentum Management
+
+Wheel speed limiting:
+|ω_w| < ω_max
+
+Desaturation control:
+τ_desat = K × H_w
+
+Using magnetic torquers:
+m_cmd = K × (B × H_w) / |B|²
+
+Null-space control for >3 wheels.
+
+### 6. Pointing Requirements
+
+#### 6.1 Typical Accuracies
+
+| Application | Pointing | Knowledge | Stability |
+|-------------|----------|-----------|-----------|
+| Earth observation | 0.1-1° | 0.01-0.1° | 0.01°/s |
+| Communications | 0.1-0.5° | 0.05° | 0.001°/s |
+| Science | 0.01° | 0.001° | 0.0001°/s |
+| Astronomy | 1" | 0.1" | 0.01"/s |
+
+#### 6.2 Jitter Requirements
+
+High-resolution imaging:
+- Jitter < 0.1 pixel during integration
+- For 1 μrad IFOV, 1 ms integration: < 0.1 μrad/s
+
+Vibration isolation often required.
+
+### 7. References
+
+1. Wertz, J.R. "Spacecraft Attitude Determination and Control"
+2. Sidi, M.J. "Spacecraft Dynamics and Control"
+3. Markley, F.L. "Fundamentals of Spacecraft Attitude Determination and Control"
+4. Hughes, P.C. "Spacecraft Attitude Dynamics"
+5. ESA AOCS Handbook

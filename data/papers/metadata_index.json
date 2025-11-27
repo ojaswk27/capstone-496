@@ -1,0 +1,306 @@
+{
+  "version": "1.0",
+  "description": "Aerospace Design Assistant Document Corpus Metadata",
+  "total_documents": 27,
+  "last_updated": "2024-01-15",
+  "categories": {
+    "drones": {
+      "description": "Multirotor UAV, quadcopter, and VTOL design documents",
+      "document_count": 6,
+      "documents": [
+        {
+          "id": "drone_001",
+          "filename": "multirotor_design_principles.txt",
+          "title": "Multirotor UAV Design Principles and Calculations",
+          "vehicle_types": ["drone", "quadcopter", "multirotor", "uav"],
+          "topics": ["thrust", "hover", "momentum_theory", "disk_loading", "dynamics"],
+          "formulas": ["thrust_equation", "hover_power", "disk_loading", "motor_mixing"],
+          "keywords": ["quadcopter", "rotor", "propeller", "motor", "hover", "thrust"]
+        },
+        {
+          "id": "drone_002",
+          "filename": "uav_power_systems.txt",
+          "title": "UAV Power Systems and Battery Technology",
+          "vehicle_types": ["drone", "uav", "multirotor"],
+          "topics": ["battery", "power", "endurance", "efficiency"],
+          "formulas": ["battery_energy", "flight_time", "power_budget", "c_rating"],
+          "keywords": ["lipo", "battery", "endurance", "power", "energy", "efficiency"]
+        },
+        {
+          "id": "drone_003",
+          "filename": "control_systems.txt",
+          "title": "Multirotor Control Systems and Flight Dynamics",
+          "vehicle_types": ["drone", "quadcopter", "multirotor"],
+          "topics": ["control", "PID", "state_estimation", "flight_modes"],
+          "formulas": ["equations_of_motion", "PID_control", "kalman_filter"],
+          "keywords": ["PID", "control", "gyro", "accelerometer", "flight_controller"]
+        },
+        {
+          "id": "drone_004",
+          "filename": "motor_propeller_selection.txt",
+          "title": "Multirotor Motor and Propeller Selection Guide",
+          "vehicle_types": ["drone", "quadcopter", "multirotor"],
+          "topics": ["motor", "propeller", "selection", "matching"],
+          "formulas": ["thrust_coefficient", "power_coefficient", "efficiency"],
+          "keywords": ["motor", "propeller", "KV", "thrust", "efficiency", "matching"]
+        },
+        {
+          "id": "drone_005",
+          "filename": "vtol_hybrid_design.txt",
+          "title": "VTOL and Hybrid Aircraft Design",
+          "vehicle_types": ["vtol", "hybrid", "tiltrotor", "quadplane"],
+          "topics": ["VTOL", "transition", "hover", "cruise"],
+          "formulas": ["download", "transition_speed", "hover_power"],
+          "keywords": ["VTOL", "hybrid", "tiltrotor", "transition", "eVTOL"]
+        },
+        {
+          "id": "drone_006",
+          "filename": "fpv_racing_design.txt",
+          "title": "FPV Racing Drone Design and Configuration",
+          "vehicle_types": ["drone", "racing", "fpv"],
+          "topics": ["racing", "FPV", "configuration", "components"],
+          "formulas": ["thrust_to_weight", "flight_time"],
+          "keywords": ["FPV", "racing", "frame", "ESC", "camera", "VTX"]
+        }
+      ]
+    },
+    "fixed_wing": {
+      "description": "Fixed-wing aircraft aerodynamics, structures, and systems",
+      "document_count": 9,
+      "documents": [
+        {
+          "id": "fw_001",
+          "filename": "aircraft_aerodynamics.txt",
+          "title": "Fixed-Wing Aircraft Aerodynamics and Design",
+          "vehicle_types": ["fixed_wing", "aircraft", "airplane"],
+          "topics": ["lift", "drag", "aerodynamics", "performance"],
+          "formulas": ["lift_equation", "drag_equation", "L_D_ratio", "breguet_range"],
+          "keywords": ["lift", "drag", "wing", "airfoil", "aspect_ratio", "stall"]
+        },
+        {
+          "id": "fw_002",
+          "filename": "propulsion_systems.txt",
+          "title": "Aircraft Propulsion Systems",
+          "vehicle_types": ["fixed_wing", "aircraft"],
+          "topics": ["propeller", "engine", "electric", "propulsion"],
+          "formulas": ["propeller_efficiency", "thrust", "power", "SFC"],
+          "keywords": ["propeller", "engine", "thrust", "efficiency", "piston", "electric"]
+        },
+        {
+          "id": "fw_003",
+          "filename": "structural_design.txt",
+          "title": "Aircraft Structural Design and Analysis",
+          "vehicle_types": ["fixed_wing", "aircraft"],
+          "topics": ["structures", "materials", "loads", "fatigue"],
+          "formulas": ["bending_moment", "stress", "buckling", "fatigue"],
+          "keywords": ["structure", "stress", "aluminum", "composite", "fatigue", "loads"]
+        },
+        {
+          "id": "fw_004",
+          "filename": "atmospheric_properties.txt",
+          "title": "Atmospheric Properties and Models",
+          "vehicle_types": ["all"],
+          "topics": ["atmosphere", "ISA", "density", "temperature"],
+          "formulas": ["ISA_temperature", "ISA_pressure", "ISA_density", "reynolds"],
+          "keywords": ["atmosphere", "ISA", "density", "altitude", "temperature", "reynolds"]
+        },
+        {
+          "id": "fw_005",
+          "filename": "stability_control.txt",
+          "title": "Aircraft Stability and Control",
+          "vehicle_types": ["fixed_wing", "aircraft"],
+          "topics": ["stability", "control", "handling_qualities"],
+          "formulas": ["static_margin", "neutral_point", "control_effectiveness"],
+          "keywords": ["stability", "control", "elevator", "aileron", "rudder", "CG"]
+        },
+        {
+          "id": "fw_006",
+          "filename": "airfoil_wing_design.txt",
+          "title": "Airfoil Selection and Wing Design",
+          "vehicle_types": ["fixed_wing", "glider", "aircraft"],
+          "topics": ["airfoil", "wing", "high_lift", "planform"],
+          "formulas": ["CL_max", "induced_drag", "oswald_efficiency"],
+          "keywords": ["airfoil", "NACA", "wing", "flap", "slat", "aspect_ratio"]
+        },
+        {
+          "id": "fw_007",
+          "filename": "weight_estimation.txt",
+          "title": "Aircraft Weight Estimation Methods",
+          "vehicle_types": ["fixed_wing", "aircraft", "all"],
+          "topics": ["weight", "estimation", "CG", "mass_properties"],
+          "formulas": ["empty_weight_fraction", "component_weights", "CG_calculation"],
+          "keywords": ["weight", "mass", "CG", "estimation", "empty_weight", "payload"]
+        },
+        {
+          "id": "fw_008",
+          "filename": "aerodynamic_coefficients.txt",
+          "title": "Aerodynamic Coefficients Reference Database",
+          "vehicle_types": ["all"],
+          "topics": ["drag_coefficient", "lift_coefficient", "reference_data"],
+          "formulas": ["CD_shapes", "CL_max", "skin_friction"],
+          "keywords": ["CD", "CL", "drag", "lift", "coefficient", "database"]
+        }
+      ]
+    },
+    "helicopters": {
+      "description": "Helicopter aerodynamics, rotor design, and systems",
+      "document_count": 3,
+      "documents": [
+        {
+          "id": "heli_001",
+          "filename": "helicopter_aerodynamics.txt",
+          "title": "Helicopter Aerodynamics and Design",
+          "vehicle_types": ["helicopter", "rotorcraft"],
+          "topics": ["rotor", "hover", "forward_flight", "autorotation"],
+          "formulas": ["momentum_theory", "disk_loading", "figure_of_merit", "blade_element"],
+          "keywords": ["rotor", "hover", "blade", "disk_loading", "autorotation"]
+        },
+        {
+          "id": "heli_002",
+          "filename": "rotor_design.txt",
+          "title": "Helicopter Rotor System Design",
+          "vehicle_types": ["helicopter", "rotorcraft"],
+          "topics": ["blade_design", "hub", "dynamics", "materials"],
+          "formulas": ["flap_equation", "natural_frequency", "thrust_coefficient"],
+          "keywords": ["blade", "hub", "articulated", "hingeless", "twist", "taper"]
+        },
+        {
+          "id": "heli_003",
+          "filename": "transmission_systems.txt",
+          "title": "Helicopter Transmission and Drivetrain Systems",
+          "vehicle_types": ["helicopter", "rotorcraft"],
+          "topics": ["transmission", "gearbox", "drivetrain", "clutch"],
+          "formulas": ["gear_ratio", "efficiency", "critical_speed"],
+          "keywords": ["transmission", "gearbox", "tail_rotor", "clutch", "drive"]
+        }
+      ]
+    },
+    "rockets": {
+      "description": "Rocket propulsion, structures, and trajectory analysis",
+      "document_count": 4,
+      "documents": [
+        {
+          "id": "rocket_001",
+          "filename": "rocket_propulsion.txt",
+          "title": "Rocket Propulsion and Design",
+          "vehicle_types": ["rocket", "launch_vehicle"],
+          "topics": ["propulsion", "thrust", "Isp", "nozzle"],
+          "formulas": ["tsiolkovsky", "thrust_equation", "specific_impulse", "delta_v"],
+          "keywords": ["thrust", "Isp", "propellant", "nozzle", "delta_v", "staging"]
+        },
+        {
+          "id": "rocket_002",
+          "filename": "structures_materials.txt",
+          "title": "Rocket Structures and Materials",
+          "vehicle_types": ["rocket", "launch_vehicle"],
+          "topics": ["structures", "tanks", "materials", "mass_fraction"],
+          "formulas": ["hoop_stress", "buckling", "mass_ratio"],
+          "keywords": ["tank", "structure", "composite", "mass_fraction", "nozzle"]
+        },
+        {
+          "id": "rocket_003",
+          "filename": "trajectory_guidance.txt",
+          "title": "Rocket Trajectory Analysis and Guidance",
+          "vehicle_types": ["rocket", "launch_vehicle"],
+          "topics": ["trajectory", "guidance", "drag", "recovery"],
+          "formulas": ["gravity_loss", "drag_loss", "apogee", "descent_rate"],
+          "keywords": ["trajectory", "apogee", "guidance", "gravity_turn", "parachute"]
+        },
+        {
+          "id": "rocket_004",
+          "filename": "motor_selection.txt",
+          "title": "Model Rocket Motor Selection and Performance",
+          "vehicle_types": ["rocket", "model_rocket"],
+          "topics": ["motor", "impulse", "selection", "staging"],
+          "formulas": ["total_impulse", "thrust_to_weight", "burn_time"],
+          "keywords": ["motor", "impulse", "delay", "thrust", "Estes", "Aerotech"]
+        }
+      ]
+    },
+    "satellites": {
+      "description": "Satellite orbital mechanics, systems, and design",
+      "document_count": 5,
+      "documents": [
+        {
+          "id": "sat_001",
+          "filename": "orbital_mechanics.txt",
+          "title": "Satellite Orbital Mechanics and Design",
+          "vehicle_types": ["satellite", "spacecraft"],
+          "topics": ["orbit", "velocity", "maneuvers", "mission_design"],
+          "formulas": ["orbital_velocity", "orbital_period", "hohmann_transfer", "delta_v"],
+          "keywords": ["orbit", "LEO", "GEO", "velocity", "period", "Kepler"]
+        },
+        {
+          "id": "sat_002",
+          "filename": "power_thermal_systems.txt",
+          "title": "Satellite Power and Thermal Systems",
+          "vehicle_types": ["satellite", "spacecraft"],
+          "topics": ["solar_array", "battery", "thermal_control"],
+          "formulas": ["solar_power", "eclipse_time", "thermal_balance"],
+          "keywords": ["solar", "battery", "thermal", "eclipse", "power", "temperature"]
+        },
+        {
+          "id": "sat_003",
+          "filename": "attitude_control.txt",
+          "title": "Satellite Attitude Determination and Control",
+          "vehicle_types": ["satellite", "spacecraft"],
+          "topics": ["ADCS", "attitude", "sensors", "actuators"],
+          "formulas": ["quaternion", "torque", "momentum", "disturbance"],
+          "keywords": ["attitude", "gyro", "star_tracker", "reaction_wheel", "magnetorquer"]
+        },
+        {
+          "id": "sat_004",
+          "filename": "communications.txt",
+          "title": "Satellite Communications Systems",
+          "vehicle_types": ["satellite", "spacecraft"],
+          "topics": ["communications", "link_budget", "antenna"],
+          "formulas": ["link_budget", "FSPL", "antenna_gain", "data_rate"],
+          "keywords": ["communication", "antenna", "link_budget", "downlink", "frequency"]
+        },
+        {
+          "id": "sat_005",
+          "filename": "cubesat_standards.txt",
+          "title": "CubeSat Design Standards and Guidelines",
+          "vehicle_types": ["satellite", "cubesat"],
+          "topics": ["CubeSat", "standards", "testing", "interfaces"],
+          "formulas": ["power_budget", "mass_budget", "thermal"],
+          "keywords": ["CubeSat", "1U", "3U", "deployer", "standard", "P-POD"]
+        }
+      ]
+    },
+    "gliders": {
+      "description": "Glider and sailplane design and performance",
+      "document_count": 1,
+      "documents": [
+        {
+          "id": "glider_001",
+          "filename": "glider_aerodynamics.txt",
+          "title": "Glider Aerodynamics and Performance",
+          "vehicle_types": ["glider", "sailplane"],
+          "topics": ["glide_ratio", "sink_rate", "thermal", "performance"],
+          "formulas": ["glide_ratio", "sink_rate", "speed_polar", "mccready"],
+          "keywords": ["glide", "sink", "thermal", "L_D", "polar", "soaring"]
+        }
+      ]
+    }
+  },
+  "cross_references": {
+    "common_formulas": [
+      {"name": "reynolds_number", "documents": ["fw_004", "fw_008"]},
+      {"name": "lift_equation", "documents": ["fw_001", "glider_001"]},
+      {"name": "power_calculation", "documents": ["drone_001", "drone_002", "heli_001"]},
+      {"name": "weight_estimation", "documents": ["fw_007", "drone_002"]}
+    ],
+    "vehicle_type_mapping": {
+      "drone": ["drone_001", "drone_002", "drone_003", "drone_004", "drone_006"],
+      "quadcopter": ["drone_001", "drone_002", "drone_003", "drone_004"],
+      "fixed_wing": ["fw_001", "fw_002", "fw_003", "fw_005", "fw_006", "fw_007"],
+      "helicopter": ["heli_001", "heli_002", "heli_003"],
+      "rocket": ["rocket_001", "rocket_002", "rocket_003", "rocket_004"],
+      "satellite": ["sat_001", "sat_002", "sat_003", "sat_004", "sat_005"],
+      "glider": ["glider_001", "fw_006"],
+      "vtol": ["drone_005"],
+      "hybrid": ["drone_005"]
+    }
+  }
+}

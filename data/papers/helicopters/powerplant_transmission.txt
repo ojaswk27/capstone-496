@@ -1,0 +1,311 @@
+# Helicopter Powerplant and Transmission Systems
+## Reference Document for Aerospace Design Assistant
+
+### 1. Turboshaft Engine Fundamentals
+
+#### 1.1 Operating Principles
+
+Turboshaft cycle:
+1. Air compression (compressor)
+2. Fuel addition and combustion
+3. Expansion through turbine
+4. Power extraction via free turbine
+
+Power output:
+SHP = ṁ_air × c_p × (T_3 - T_4) × η_mech
+
+Specific fuel consumption:
+SFC = ṁ_fuel / SHP (lb/shp-hr or kg/kW-hr)
+
+Typical SFC: 0.4-0.6 lb/shp-hr
+
+#### 1.2 Engine Components
+
+Compressor:
+- Centrifugal: Simple, rugged, lower efficiency
+- Axial: Higher efficiency, more stages
+- Combined: Axial + centrifugal
+
+Combustor:
+- Can: Individual chambers
+- Annular: Single chamber around shaft
+- Can-annular: Combination
+
+Gas generator turbine:
+- Drives compressor
+- Variable inlet guide vanes for control
+
+Power (free) turbine:
+- Mechanically independent
+- Drives output shaft
+- Allows rotor speed to vary
+
+#### 1.3 Performance Characteristics
+
+Power lapse with altitude:
+SHP_alt/SHP_SL ≈ σ^0.7 to σ^0.9
+
+Power lapse with temperature:
+SHP_hot/SHP_std ≈ T_std/T_actual
+
+Maximum continuous power (MCP): 100% rated
+Takeoff power (TOP): 110-120% for 5-10 min
+Emergency power: 130-150% for 30 sec - 2 min
+
+### 2. Piston Engine Alternative
+
+#### 2.1 Applications
+
+Light helicopters:
+- Robinson R22, R44
+- Schweizer 300
+- Lower cost, simpler maintenance
+
+Typical engines:
+- Lycoming O-360: 180 hp
+- Lycoming O-540: 235-310 hp
+
+#### 2.2 Power Characteristics
+
+Power at altitude:
+SHP_alt = SHP_SL × (ρ_alt/ρ_SL)^n
+
+n ≈ 0.7 for naturally aspirated
+n ≈ 0 up to critical altitude for turbocharged
+
+SFC: 0.4-0.5 lb/hp-hr
+Lower than turboshaft at low power settings
+
+### 3. Transmission System
+
+#### 3.1 Main Gearbox Functions
+
+Speed reduction:
+- Engine: 20,000-50,000 RPM
+- Main rotor: 200-400 RPM
+- Reduction ratio: 50:1 to 200:1
+
+Power distribution:
+- Main rotor
+- Tail rotor
+- Accessories (hydraulics, generators)
+
+#### 3.2 Gear Types
+
+Planetary gears:
+- High reduction ratios
+- Compact
+- Power splitting
+- Most common for final stage
+
+Spiral bevel gears:
+- Right angle drive
+- Tail rotor takeoff
+- Accessory drives
+
+Spur gears:
+- Simple, efficient
+- Intermediate stages
+
+Helical gears:
+- Quieter than spur
+- Axial thrust produced
+
+#### 3.3 Lubrication
+
+Oil system:
+- Pressure: 40-80 psi
+- Temperature: 60-120°C operating
+- MIL-PRF-23699 (synthetic)
+- MIL-PRF-7808 (legacy)
+
+Oil consumption:
+- Typical: 0.1-0.5 qt/hr
+- Monitor for trends
+
+Chip detectors:
+- Magnetic plugs
+- Warning of gear wear
+
+#### 3.4 Transmission Rating
+
+Continuous rating:
+- Normal operation limit
+- All-day capability
+
+Takeoff rating:
+- 5-10 minute limit
+- 110-120% of continuous
+
+Emergency rating:
+- One engine inoperative (OEI)
+- 2-30 minute limit depending on category
+
+### 4. Tail Rotor Drive
+
+#### 4.1 Drive Shaft
+
+Long shaft from main gearbox to tail:
+- Multiple sections with flex couplings
+- Hanger bearings at supports
+- Critical speed considerations
+
+Critical speed:
+N_crit = (π/L²) × √(E×I/(ρ×A))
+
+Design above or below operating speed
+
+#### 4.2 Tail Gearbox
+
+90° bevel gear set:
+- Changes rotation axis
+- Some speed change
+
+Typical tail rotor speed:
+- 2-3× main rotor RPM
+- Higher RPM, smaller diameter
+
+Intermediate gearbox:
+- Some designs have additional gearbox
+- Allows drive shaft angle changes
+
+### 5. Freewheeling Unit
+
+#### 5.1 Purpose
+
+Allows rotor to continue spinning when:
+- Engine fails (autorotation)
+- Engine slows during shutdown
+
+One-way clutch:
+- Sprag type most common
+- Roller type alternative
+
+#### 5.2 Sprag Clutch Operation
+
+Engagement:
+- Sprags tilt and lock
+- Transmits torque engine → rotor
+
+Overrun:
+- Sprags straighten
+- Rotor drives faster than engine
+- No torque transmitted
+
+### 6. Rotor Brake
+
+#### 6.1 Function
+
+Stops rotor after shutdown:
+- Prevents wind-milling
+- Safety during ground operations
+
+Types:
+- Disc brake on transmission
+- Drum brake
+- Multiple disc (wet)
+
+Application:
+- Only when rotor below safe speed
+- Typically < 50% NR
+
+### 7. Engine-Transmission Matching
+
+#### 7.1 Power Requirements
+
+Installed power:
+P_installed ≥ P_hover_OGE × margin
+
+Typical margins:
+- Single engine: 20-30%
+- Twin engine: One engine inoperative capability
+
+#### 7.2 Twin Engine Considerations
+
+Power sharing:
+- Equal torque matching
+- Load sharing controls
+
+OEI ratings:
+- 2.5 minute: 135-150% normal
+- 30 minute: 120-130% normal
+- Continuous: 100-110% normal
+
+Category A operations:
+- Continued flight capability
+- After critical engine failure
+- At critical decision point
+
+#### 7.3 Altitude Effects
+
+Hot and high conditions:
+- Reduced air density
+- Reduced engine power
+- Increased power required
+
+Design altitude:
+- Specify hover capability
+- Example: 6000 ft, 35°C, OGE
+
+### 8. Auxiliary Systems
+
+#### 8.1 Engine Starting
+
+Starter-generator:
+- DC motor for starting
+- Generator after start
+
+APU (large helicopters):
+- Independent power source
+- Ground operations
+- Emergency power
+
+Start sequence:
+1. Engage starter
+2. Fuel introduction at 15-20% N1
+3. Light-off and acceleration
+4. Starter cutout at 50-60% N1
+5. Idle at 60-70% N1
+
+#### 8.2 Fuel System
+
+Fuel types:
+- Jet A, Jet A-1 (turboshaft)
+- 100LL Avgas (piston)
+
+Fuel consumption:
+- Turboshaft: 0.5-1.5 lb/shp-hr at cruise
+- Piston: 0.4-0.5 lb/hp-hr
+
+Fuel flow at hover (example):
+- 2000 shp engine at 70% power
+- SFC = 0.55 lb/shp-hr
+- Flow = 0.55 × 1400 = 770 lb/hr = 115 gal/hr
+
+### 9. Specifications Examples
+
+#### 9.1 Rolls-Royce M250-C20 (Light)
+- Power: 420 shp (takeoff)
+- Weight: 158 lb
+- SFC: 0.58 lb/shp-hr
+- Applications: Bell 206, MD 500
+
+#### 9.2 GE T700-701D (Medium)
+- Power: 1,940 shp (takeoff)
+- Weight: 458 lb
+- SFC: 0.45 lb/shp-hr
+- Applications: UH-60, AH-64
+
+#### 9.3 GE T64-419 (Heavy)
+- Power: 4,380 shp (takeoff)
+- Weight: 719 lb
+- SFC: 0.42 lb/shp-hr
+- Applications: CH-53
+
+### 10. References
+
+1. Prouty, R.W. "Helicopter Performance, Stability, and Control"
+2. Leishman, J.G. "Principles of Helicopter Aerodynamics"
+3. FAA Rotorcraft Flying Handbook
+4. Rolls-Royce "The Jet Engine"
+5. SAE AS50015 - Helicopter Transmission Rating
