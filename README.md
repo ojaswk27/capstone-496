@@ -56,15 +56,15 @@ I plan to execute these steps to complete my project.
 
 - [TODO] Step 1 involves setting up the project - fork the template repo, install langchain, langgraph, langsmith, and FAISS/ChromaDB, set up API keys. Done!
 
-- [TODO] Step 2 involves collecting research papers - download 30-40 papers from arXiv and NASA on drones, planes, helicopters, rockets, and satellites, organize them by vehicle type. Done, a lot harder than expected, had to use multiple layerd RAG apps to fetch, read, filter and arrange bits of data that I will need. 
+- [TODO] Step 2 involves collecting research papers - download 30-40 papers from arXiv and NASA on drones, planes, helicopters, rockets, and satellites, organize them by vehicle type. Done, a lot harder than expected, had to use multiple layerd RAG apps to fetch, read, filter and arrange bits of data that I will need. Done!
 
-- [TODO] Step 3 involves building semantic search - extract text from PDFs, create embeddings, set up vector database, test if search actually finds relevant papers
+- [TODO] Step 3 involves building semantic search - extract text from PDFs, create embeddings, set up vector database, test if search actually finds relevant papers. Done!
 
-- [TODO] Step 4 involves making the RAG system - write prompts to pull out formulas and data from papers, add citation tracking so we know where info came from, test on some known equations
+- [TODO] Step 4 involves making the RAG system - write prompts to pull out formulas and data from papers, add citation tracking so we know where info came from, test on some known equations. Done!
 
-- [TODO] Step 5 involves creating all the calculation tools - drone tools (thrust, battery life, propeller size), plane tools (lift, drag, wing area, range), rocket tools (delta-v, staging, burn time), helicopter tools (rotor power), satellite tools (orbit math, power budget), and common tools (weight, balance, stability)
+- [TODO] Step 5 involves creating all the calculation tools - drone tools (thrust, battery life, propeller size), plane tools (lift, drag, wing area, range), rocket tools (delta-v, staging, burn time), helicopter tools (rotor power), satellite tools (orbit math, power budget), and common tools (weight, balance, stability). Done!
 
-- [TODO] Step 6 involves connecting tools to the LLM - define tool schemas, set up MCP-style registration, make sure the LLM can actually call tools correctly
+- [TODO] Step 6 involves connecting tools to the LLM - define tool schemas, set up MCP-style registration, make sure the LLM can actually call tools correctly. Done!
 
 - [TODO] Step 7 involves designing the state - define what data the graph needs to track (requirements, vehicle type, search results, formulas, calculations, final design), create Pydantic models, add vehicle classification logic
 
