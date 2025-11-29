@@ -66,11 +66,11 @@ I plan to execute these steps to complete my project.
 
 - [TODO] Step 6 involves connecting tools to the LLM - define tool schemas, set up MCP-style registration, make sure the LLM can actually call tools correctly. Done!
 
-- [TODO] Step 7 involves designing the state - define what data the graph needs to track (requirements, vehicle type, search results, formulas, calculations, final design), create Pydantic models, add vehicle classification logic
+- [TODO] Step 7 involves designing the state - define what data the graph needs to track (requirements, vehicle type, search results, formulas, calculations, final design), create Pydantic models, add vehicle classification logic. Done!
 
-- [TODO] Step 8 involves building all the LangGraph nodes - Vehicle Classifier (what type of vehicle?), Requirement Parser (understand user input), Search Agent (find relevant papers), Extraction Agent (pull out formulas using RAG), Tool Selector (pick the right calculation tools), Calculation Agent (run the math), Validator (does it meet requirements?), Synthesizer (make final design output)
+- [TODO] Step 8 involves building all the LangGraph nodes - Vehicle Classifier (what type of vehicle?), Requirement Parser (understand user input), Search Agent (find relevant papers), Extraction Agent (pull out formulas using RAG), Tool Selector (pick the right calculation tools), Calculation Agent (run the math), Validator (does it meet requirements?), Synthesizer (make final design output) Done!
 
-- [TODO] Step 9 involves connecting the graph - add edges between nodes, add routing for different vehicle types, add logic to loop back if validation fails, test the whole flow
+- [TODO] Step 9 involves connecting the graph - add edges between nodes, add routing for different vehicle types, add logic to loop back if validation fails, test the whole flow. Done!
 
 - [TODO] Step 10 involves making nice output - define JSON schema for results, create templates for design reports, add tables/charts, include citations
 

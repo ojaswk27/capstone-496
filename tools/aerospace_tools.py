@@ -40,8 +40,27 @@ class AerospaceAgentTools:
         """
         print(f"🛠️  Tool Call: solve_physics_problem('{query}')")
 
+        # Try to extract what we're solving for from the query
+        # e.g., "hover thrust" -> output = "thrust"
+        # e.g., "delta v" -> output = "delta_v"
+        query_lower = query.lower()
+        desired_output = None
+
+        if "thrust" in query_lower:
+            desired_output = "thrust"
+        elif "delta" in query_lower and "v" in query_lower:
+            desired_output = "delta_v"
+        elif "velocity" in query_lower or "speed" in query_lower:
+            desired_output = "velocity"
+        elif "power" in query_lower:
+            desired_output = "power"
+        elif "lift" in query_lower:
+            desired_output = "lift"
+        elif "drag" in query_lower:
+            desired_output = "drag"
+
         # 1. Find Formula
-        formulas = self.extractor.extract_formulas(query, vehicle_type)
+        formulas = self.extractor.extract_formulas(query, vehicle_type, desired_output=desired_output)
         if not formulas:
             return {"error": "No suitable formula found."}
 
