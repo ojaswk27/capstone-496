@@ -1,16 +1,37 @@
+#!/usr/bin/env python3
+"""
+Real-data downloader for Aerospace Design Assistant
+- Retries + checksums
+- 2 s polite pause for NTRS
+- Rich progress bar (optional)
+"""
+
 import os
-import urllib.request
 import time
+import hashlib
+import urllib.parse
+from pathlib import Path
+from typing import Dict, List, Tuple
 
-# Define the directory structure
-DATA_DIR = "data/papers"
-CATEGORIES = [
-    "drones", "fixed_wing", "helicopters", "rockets", "satellites", "gliders"
-]
+# Optional pretty progress
+try:
+    from rich.progress import track
+    RICH = True
+except ImportError:
+    RICH = False
 
-# Curated list of Open Access Technical PDFs (NASA, MIT, etc.)
-# These are stable, direct download links to real engineering documents.
-REAL_SOURCES = {
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
+# ------------------------------------------------------------------
+# Configuration
+# ------------------------------------------------------------------
+DATA_DIR = Path("data/papers")
+CATEGORIES = ["drones", "fixed_wing", "helicopters", "rockets", "satellites", "gliders"]
+
+# Same URLs you already curated
+REAL_SOURCES: Dict[str, List[Tuple[str, str]]] = {
     "drones": [
         ("https://ntrs.nasa.gov/api/citations/20110015820/downloads/20110015820.pdf",
          "NASA_Quadrocopter_Control_Design.pdf"),
@@ -33,7 +54,7 @@ REAL_SOURCES = {
         ("https://ntrs.nasa.gov/api/citations/19680016252/downloads/19680016252.pdf",
          "NASA_Rocket_Dynamic_Stability.pdf"),
         ("https://ocw.mit.edu/courses/16-07-dynamics-fall-2009/pages/lecture-notes/MIT16_07F09_Lec14.pdf",
-         "MIT_Rocket_Equation_Dynamics.pdf")  # Note: Check if this link resolves, if not, fallback to NTRS
+         "MIT_Rocket_Equation_Dynamics.pdf")
     ],
     "satellites": [
         ("https://ntrs.nasa.gov/api/citations/20210000201/downloads/TP-20210000201.pdf",
@@ -47,55 +68,75 @@ REAL_SOURCES = {
     ],
     "gliders": [
         ("https://ntrs.nasa.gov/api/citations/20160003578/downloads/20160003578.pdf",
-         "NASA_Glider_Flight_Testing.pdf")  # Fallback/Example
+         "NASA_Glider_Flight_Testing.pdf")
     ]
 }
 
+# ------------------------------------------------------------------
+# HTTP Session with retry & polite headers
+# ------------------------------------------------------------------
+SESSION = requests.Session()
+retry = Retry(total=3, backoff_factor=2, status_forcelist=[500, 502, 503, 504])
+SESSION.mount("https://", HTTPAdapter(max_retries=retry))
+SESSION.headers.update({
+    "User-Agent": "AerospaceDesignBot/1.0 (academic use, polite 2-s delay)"
+})
 
-def download_files():
-    print("🚀 Starting Real Data Download...")
+# ------------------------------------------------------------------
+# Download helper
+# ------------------------------------------------------------------
+def download_file(url: str, dest: Path, min_kb: int = 20) -> str:
+    """Download with progress bar, return SHA-256 hex."""
+    resp = SESSION.get(url, stream=True, timeout=60)
+    resp.raise_for_status()
+    total = int(resp.headers.get("content-length", 0))
+    sha = hashlib.sha256()
+    downloaded = 0
+    with open(dest, "wb") as fh:
+        for chunk in resp.iter_content(chunk_size=8192):
+            if not chunk:
+                continue
+            fh.write(chunk)
+            sha.update(chunk)
+            downloaded += len(chunk)
+    if downloaded < min_kb * 1024:
+        dest.unlink()
+        raise ValueError(f"File too small ({downloaded} bytes)")
+    return sha.hexdigest()
 
-    for category in CATEGORIES:
-        folder_path = os.path.join(DATA_DIR, category)
-        os.makedirs(folder_path, exist_ok=True)
+# ------------------------------------------------------------------
+# Main downloader
+# ------------------------------------------------------------------
+def download_all() -> None:
+    print("🚀 Starting real-data download...")
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-        # Clear dummy data if it exists
-        for f in os.listdir(folder_path):
-            if "dummy" in f.lower() or "txt" in f:
-                # Optional: Delete .txt files if you want to replace them entirely
-                # os.remove(os.path.join(folder_path, f))
-                pass
+    tasks = [(cat, url, name) for cat, pairs in REAL_SOURCES.items() for url, name in pairs]
+    if not tasks:
+        print("⚠️  No URLs configured")
+        return
 
-        if category in REAL_SOURCES:
-            for url, filename in REAL_SOURCES[category]:
-                dest_path = os.path.join(folder_path, filename)
+    iterator = track(tasks, description="Downloading") if RICH else tasks
+    for cat, url, filename in iterator:
+        folder = DATA_DIR / cat
+        folder.mkdir(exist_ok=True)
+        dest = folder / filename
 
-                if os.path.exists(dest_path):
-                    print(f"⏭️  Skipping {filename} (Already exists)")
-                    continue
+        if dest.exists() and dest.stat().st_size > 0:
+            print(f"⏭️  {cat}/{filename}  (exists)")
+            continue
 
-                print(f"⬇️  Downloading {filename}...")
-                try:
-                    # Add User-Agent to avoid 403 Forbidden from some servers
-                    req = urllib.request.Request(
-                        url,
-                        data=None,
-                        headers={
-                            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
-                        }
-                    )
+        try:
+            checksum = download_file(url, dest)
+            print(f"✅ {cat}/{filename}  (sha256:{checksum[:7]})")
+            time.sleep(2)          # NTRS polite pause
+        except Exception as e:
+            print(f"❌ {cat}/{filename}  → {e}")
 
-                    with urllib.request.urlopen(req) as response, open(dest_path, 'wb') as out_file:
-                        out_file.write(response.read())
+    print("\n🎉 Download complete.")
 
-                    print(f"✅ Saved to {category}/{filename}")
-                    time.sleep(1)  # Be polite to the servers
-
-                except Exception as e:
-                    print(f"❌ Failed to download {filename}: {e}")
-
-    print("\n🎉 Download Complete. You now have REAL PDF data.")
-
-
+# ------------------------------------------------------------------
+# CLI
+# ------------------------------------------------------------------
 if __name__ == "__main__":
-    download_files()
+    download_all()

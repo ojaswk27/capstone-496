@@ -1,291 +1,284 @@
 #!/usr/bin/env python3
 """
-Enhanced document ingestion script for the Aerospace Design Assistant.
-Processes both .txt and .pdf files from the data directory into the vector database.
-
-Usage:
-    python ingest_data.py              # Normal run (prompts before clearing)
-    python ingest_data.py --clear      # Force clear without prompt
-    python ingest_data.py --no-clear   # Add new docs without clearing
-    python ingest_data.py --test       # Run test search after ingestion
-    python ingest_data.py --clear --test  # Clear, ingest, and test
+Enhanced ingestion for Aerospace Design Assistant
+- OCR for scanned PDFs
+- Math-aware page filter
+- Duplicate detection via SHA-256
+- Rich progress bar (optional)
 """
 
 import os
-import sys
-from pathlib import Path
-from rag.document_store import DocumentStore
-from pypdf import PdfReader
+import re
+import json
+import math  # Add this import
+from typing import Dict, List, Optional, Any, Tuple
 
-DATA_DIR = "data/papers"
+# LangGraph
+from langgraph.graph import StateGraph, MessageGraph, END, CompiledGraph
 
+# Rich progress bar (optional)
+try:
+    from rich.progress import track, Progress, TaskID
+    from rich.console import Console
+    RICH = True
+    console = Console()
+except ImportError:
+    RICH = False
+    console = None
 
-def ingest_all(clear_existing: bool = True, verbose: bool = True):
-    """
-    Main ingestion function that processes all documents in the data directory.
-
-    Args:
-        clear_existing: If True, clears the database before ingesting
-        verbose: If True, prints detailed progress information
-
-    Returns:
-        dict: Statistics about the ingestion process
-    """
-
-    if verbose:
-        print("🚀 Starting Document Ingestion...")
-        print(f"📂 Data directory: {DATA_DIR}")
-
-    # Initialize document store
-    try:
-        store = DocumentStore()
-    except Exception as e:
-        print(f"❌ Error initializing DocumentStore: {e}")
-        return {"success": False, "error": str(e)}
-
-    # Clear existing data if requested
-    if clear_existing:
-        if verbose:
-            print("🗑️  Clearing existing database...")
+# PDF processing
+import shutil, subprocess
+try:
+    from pypdf import PdfReader
+    from pdf2image import convert_from_path
+    import pytesseract
+    
+    # Check if tesseract binary is available
+    tesseract_available = shutil.which("tesseract") is not None
+    if tesseract_available:
         try:
-            store.clear()
-            if verbose:
-                print("✅ Database cleared")
+            result = subprocess.run(
+                ["tesseract", "--version"],
+                capture_output=True,
+                timeout=5,
+                check=False
+            )
+            tesseract_works = (result.returncode == 0)
         except Exception as e:
-            print(f"❌ Error clearing database: {e}")
-            return {"success": False, "error": str(e)}
+            if console:
+                console.print(f"[yellow]Tesseract check failed: {e}[/yellow]")
+            tesseract_works = False
+    else:
+        tesseract_works = False
+    
+    PDF_OK = tesseract_works
+    
+    if PDF_OK and console:
+        console.print("[green]✓ PDF processing with OCR available[/green]")
+    elif console:
+        console.print("[yellow]⚠️  Tesseract not available - PDFs will be skipped[/yellow]")
+        
+except ImportError as e:
+    PDF_OK = False
+    if console:
+        console.print(f"[yellow]⚠️  PDF libraries not installed: {e}[/yellow]")
 
-    # Statistics tracking
-    stats = {
-        "total_files": 0,
-        "txt_files": 0,
-        "pdf_files": 0,
-        "failed_files": 0,
-        "categories": {},
-        "success": True
+from rag.document_store import DocumentStore
+
+DATA_DIR = Path("data/papers")
+MAX_PAGES_PER_PDF = int(os.getenv("MAX_PAGES", 50))   # safety cap
+MATH_KEYWORDS = {
+    "equation", "coefficient", "lift", "drag", "thrust", "moment",
+    "ρ=", "C_L=", "C_D=", "Δv=", "Re=", "Ma=", "q=", "L/D", "Isp"
+}
+
+# ------------------------------------------------------------------
+# OCR helper
+# ------------------------------------------------------------------
+def ocr_page(page_image) -> str:
+    """Tesseract OCR on a single PIL image."""
+    return pytesseract.image_to_string(page_image, lang="eng+equ")
+
+# ------------------------------------------------------------------
+# Math-aware page filter
+# ------------------------------------------------------------------
+def keep_page(text: str) -> bool:
+    """Return True if page contains engineering math."""
+    text_lower = text.lower()
+    return any(kw in text_lower for kw in MATH_KEYWORDS)
+
+# ------------------------------------------------------------------
+# Process single file
+# ------------------------------------------------------------------
+def process_file(file_path: Path, category: str) -> Optional[Dict]:
+    """Return dict ready for DocumentStore or None if skipped."""
+    content_parts: List[str] = []
+    meta = {
+        "source": file_path.name,
+        "category": category,
+        "filepath": str(file_path),
+        "file_type": file_path.suffix.lower(),
+        "sha256": hashlib.sha256(file_path.read_bytes()).hexdigest()
     }
 
-    # Check if data directory exists
-    if not os.path.exists(DATA_DIR):
-        print(f"❌ Data directory not found: {DATA_DIR}")
-        print(f"   Please create it and add your documents.")
-        return {"success": False, "error": "Data directory not found"}
+    if file_path.suffix.lower() == ".pdf":
+        if not PDF_OK:
+            if console:
+                console.print(f"[yellow]⚠️  OCR libs missing – skipping {file_path.name}[/yellow]")
+            return None
+        try:
+            reader = PdfReader(file_path)
+            total_pages = len(reader.pages)
+            pages_to_read = min(total_pages, MAX_PAGES_PER_PDF)
+            for page_num in range(pages_to_read):
+                text = reader.pages[page_num].extract_text() or ""
+                if not text and PDF_OK:                       # fallback to OCR
+                    images = convert_from_path(file_path, first_page=page_num+1, last_page=page_num+1)
+                    text = ocr_page(images[0])
+                if keep_page(text):
+                    content_parts.append(text)
+            content = "\n".join(content_parts)
+        except Exception as e:
+            if console:
+                console.print(f"[red]❌ PDF read error {file_path.name}: {e}[/red]")
+            return None
+    elif file_path.suffix.lower() == ".txt":
+        content = file_path.read_text(encoding="utf-8")
+    else:
+        return None
 
-    # Process all files
-    if verbose:
-        print(f"\n📚 Scanning for documents...\n")
+    if not content.strip():
+        return None
+    meta["content_size"] = len(content)
+    return {"content": content, "metadata": meta}
 
-    for root, dirs, files in os.walk(DATA_DIR):
-        category = os.path.basename(root)
+# ------------------------------------------------------------------
+# Main ingestion
+# ------------------------------------------------------------------
+def ingest_all(clear_existing: bool = True, verbose: bool = True) -> Dict:
+    store = DocumentStore()
+    if clear_existing:
+        store.clear()
+        if verbose and console:
+            console.print("[bold green]✅ Database cleared[/bold green]")
 
-        # Skip the root papers directory itself
-        if root == DATA_DIR:
+    stats = {"total": 0, "pdf": 0, "txt": 0, "skipped": 0, "chunks": 0, "duplicates": 0}
+    
+    # Track processed SHA-256 hashes to avoid duplicates
+    processed_hashes = set()
+
+    all_files = [p for p in DATA_DIR.rglob("*") if p.suffix.lower() in {".pdf", ".txt"}]
+    if not all_files:
+        if console:
+            console.print("[red]No PDF/TXT files found – nothing to ingest[/red]")
+        return stats
+
+    iterator = track(all_files, description="Ingesting") if RICH else all_files
+    for file_path in iterator:
+        category = file_path.parent.name
+        record = process_file(file_path, category)
+        if not record:
+            stats["skipped"] += 1
             continue
+        
+        # de-duplicate on SHA-256 using local tracking
+        doc_hash = record["metadata"]["sha256"]
+        if doc_hash in processed_hashes:
+            stats["duplicates"] += 1
+            continue
+        
+        processed_hashes.add(doc_hash)
+        store.add_document(record["content"], metadata=record["metadata"])
+        stats["total"] += 1
+        stats[file_path.suffix.lower().strip(".")] += 1
 
-        # Initialize category counter
-        if category not in stats["categories"]:
-            stats["categories"][category] = {"txt": 0, "pdf": 0, "failed": 0}
-
-        # Process each file
-        for filename in files:
-            file_path = os.path.join(root, filename)
-            content = ""
-            file_type = None
-
-            try:
-                # Handle Text Files
-                if filename.endswith(".txt"):
-                    file_type = "txt"
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        content = f.read()
-
-                    if not content.strip():
-                        if verbose:
-                            print(f"   ⚠️  [{category}] Skipping empty file: {filename}")
-                        continue
-
-                # Handle PDF Files
-                elif filename.endswith(".pdf"):
-                    file_type = "pdf"
-                    try:
-                        reader = PdfReader(file_path)
-                        pages_text = []
-                        for page_num, page in enumerate(reader.pages, 1):
-                            try:
-                                page_text = page.extract_text()
-                                if page_text:
-                                    pages_text.append(page_text)
-                            except Exception as e:
-                                if verbose:
-                                    print(f"   ⚠️  [{category}] Error reading page {page_num} of {filename}: {e}")
-
-                        content = "\n".join(pages_text)
-
-                        if not content.strip():
-                            if verbose:
-                                print(f"   ⚠️  [{category}] No text extracted from PDF: {filename}")
-                            stats["categories"][category]["failed"] += 1
-                            stats["failed_files"] += 1
-                            continue
-
-                    except Exception as e:
-                        if verbose:
-                            print(f"   ❌ [{category}] Error reading PDF {filename}: {e}")
-                        stats["categories"][category]["failed"] += 1
-                        stats["failed_files"] += 1
-                        continue
-
-                else:
-                    # Skip non-txt, non-pdf files
-                    continue
-
-                # Add document to store
-                if content:
-                    metadata = {
-                        "source": filename,
-                        "category": category,
-                        "filepath": file_path,
-                        "file_type": file_type
-                    }
-
-                    store.add_document(content, metadata=metadata)
-
-                    # Update statistics
-                    stats["total_files"] += 1
-                    if file_type == "txt":
-                        stats["txt_files"] += 1
-                        stats["categories"][category]["txt"] += 1
-                    elif file_type == "pdf":
-                        stats["pdf_files"] += 1
-                        stats["categories"][category]["pdf"] += 1
-
-                    if verbose:
-                        print(f"   ✅ [{category.upper()}] Ingested: {filename}")
-
-            except Exception as e:
-                if verbose:
-                    print(f"   ❌ [{category}] Unexpected error processing {filename}: {e}")
-                stats["categories"][category]["failed"] += 1
-                stats["failed_files"] += 1
-
-    # Get final database statistics
-    try:
-        db_stats = store.get_stats()
-        stats["total_chunks"] = db_stats.get("count", 0)
-    except Exception as e:
-        print(f"⚠️  Could not retrieve database stats: {e}")
-        stats["total_chunks"] = "Unknown"
-
-    # Print summary
-    if verbose:
-        print_summary(stats)
-
+    db_info = store.get_stats()
+    stats["chunks"] = db_info.get("count", 0)
+    if verbose and console:
+        console.print(f"[bold green]Ingest complete:[/bold green] {stats}")
     return stats
 
-
-def print_summary(stats):
-    """Print a formatted summary of the ingestion process."""
-    print(f"\n{'=' * 60}")
-    print(f"📊 Ingestion Complete!")
-    print(f"{'=' * 60}")
-    print(f"Total files processed: {stats['total_files']}")
-    print(f"  - Text files (.txt): {stats['txt_files']}")
-    print(f"  - PDF files (.pdf): {stats['pdf_files']}")
-    print(f"  - Failed files: {stats['failed_files']}")
-    print(f"\nTotal chunks in database: {stats['total_chunks']}")
-
-    if stats['categories']:
-        print(f"\n📂 By Category:")
-        for category, counts in stats['categories'].items():
-            total = counts['txt'] + counts['pdf']
-            if total > 0:
-                print(f"  - {category}: {total} files ({counts['txt']} txt, {counts['pdf']} pdf)")
-                if counts['failed'] > 0:
-                    print(f"    ⚠️  {counts['failed']} failed")
-
-    print(f"\n✅ Vector database ready at: ./chroma_db/")
-
-
+# ------------------------------------------------------------------
+# Test search
+# ------------------------------------------------------------------
 def test_search():
-    """Run a test search to verify the database is working correctly."""
-    print(f"\n{'=' * 60}")
-    print(f"🔍 Running Test Search...")
-    print(f"{'=' * 60}")
-
-    try:
-        store = DocumentStore()
-
-        # Test queries for different categories
-        test_queries = [
-            ("hover thrust momentum theory", "drones"),
-            ("lift coefficient", "fixed_wing"),
-            ("delta v rocket equation", "rockets"),
-        ]
-
-        for query, expected_category in test_queries:
-            print(f"\nQuery: '{query}'")
-            results = store.search(query, n_results=3)
-
-            if results:
-                print(f"✅ Found {len(results)} results:")
-                for i, result in enumerate(results, 1):
-                    source = result.metadata.get('source', 'Unknown')
-                    category = result.metadata.get('category', 'Unknown')
-                    print(f"   {i}. [{category}] {source}")
-                    print(f"      Preview: {result.content[:100]}...")
-            else:
-                print(f"⚠️  No results found")
-
-        print(f"\n✅ Test search completed")
-
-    except Exception as e:
-        print(f"❌ Test search failed: {e}")
-
-
-def main():
-    """Main entry point with command-line argument handling."""
-
-    # Parse command-line arguments
-    args = sys.argv[1:]
-
-    clear_db = True  # Default behavior
-    run_test = False
-
-    # Check for flags
-    if "--no-clear" in args:
-        clear_db = False
-    elif "--clear" in args or "-c" in args:
-        clear_db = True
-    else:
-        # Default: prompt user
-        if os.path.exists("./chroma_db"):
-            response = input("🗑️  Clear existing database before ingesting? (yes/no) [yes]: ").strip().lower()
-            clear_db = response in ["", "y", "yes"]
-        else:
-            print("ℹ️  No existing database found, will create new one")
-
-    if "--test" in args or "-t" in args:
-        run_test = True
-
-    # Show help
-    if "--help" in args or "-h" in args:
-        print(__doc__)
+    if not console:
         return
+    store = DocumentStore()
+    queries = ["hover thrust momentum theory", "lift coefficient", "delta v rocket equation"]
+    for q in queries:
+        console.print(f"\n[bold]Query:[/bold] {q}")
+        hits = store.search(q, top_k=2)
+                console.print(f"  [cyan]{hit.metadata['category']}[/cyan] {hit.metadata['source']}")
+            
+# ------------------------------------------------------------------
+# Design graph
+# ------------------------------------------------------------------
+def classify_vehicle(state):
+    return "OK"
 
-    # Run ingestion
-    stats = ingest_all(clear_existing=clear_db, verbose=True)
+def parse_requirements(state):
+    return "OK"
+    
+def validate_and_assume_parameters(state):
+    return "OK"
 
-    # Check if ingestion was successful
-    if not stats.get("success", False):
-        print("\n❌ Ingestion failed!")
-        sys.exit(1)
+def search_documents(state):
+    return "OK"
 
-    # Run test if requested
-    if run_test:
+def extract_formulas(state):
+    return "OK"
+    
+def select_tools(state):
+    return "OK"
+
+def perform_calculations(state):
+    return "OK"
+
+def validate_design(state):
+    return "OK"
+
+def synthesize_output(state):
+    return "OK"
+
+START = "entrypoint"
+
+def build_design_graph(
+    verbose: bool = True,
+    interactive: bool = True  # Add this parameter
+) -> CompiledGraph:
+    """
+    Build the aerospace design LangGraph.
+    
+    Args:
+        verbose: Whether to print progress messages
+        interactive: Whether to pause for user confirmation on assumptions
+        
+    Returns:
+        Compiled LangGraph ready for execution
+    """
+    # Create state graph
+    graph = StateGraph(str)   # FIX ME: need a proper state class
+    
+    # Add nodes
+    graph.add_node("classify", classify_vehicle)
+    graph.add_node("parse", parse_requirements)
+    graph.add_node("validate_params", validate_and_assume_parameters)  # NEW NODE
+    graph.add_node("search", search_documents)
+    graph.add_node("extract", extract_formulas)
+    graph.add_node("select_tools", select_tools)
+    graph.add_node("calculate", perform_calculations)
+    graph.add_node("validate", validate_design)
+    graph.add_node("synthesize", synthesize_output)
+    
+    # Define edges
+    graph.add_edge(START, "classify")
+    graph.add_edge("classify", "parse")
+    graph.add_edge("parse", "validate_params")  # NEW EDGE
+    graph.add_edge("validate_params", "search")  # Modified edge
+    graph.add_edge("search", "extract")
+    graph.add_edge("extract", "select_tools")
+    graph.add_edge("select_tools", "calculate")
+    graph.add_edge("calculate", "validate")
+    graph.add_edge("validate", "synthesize")
+    graph.add_edge("synthesize", END)
+
+    # Compile graph
+    return graph.compile()
+
+# ------------------------------------------------------------------
+# CLI
+# ------------------------------------------------------------------
+def main():
+    args = sys.argv[1:]
+    clear = "--no-clear" not in args
+    if not clear and "--clear" not in args:      # ask
+        clear = input("Clear DB before ingest? [Y/n] ").strip().lower() != "n"
+    test = "--test" in args
+
+    stats = ingest_all(clear_existing=clear, verbose=True)
+    if test:
         test_search()
-
-    print("\n🎉 All done!")
-
 
 if __name__ == "__main__":
     main()

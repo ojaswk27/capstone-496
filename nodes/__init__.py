@@ -1,20 +1,21 @@
 """
-LangGraph Workflow Nodes
-========================
+Node Implementations Package
+=============================
 
-This package contains the node functions for the LangGraph
-design workflow. Each node performs a specific step in the
-aerospace design process.
+This package contains individual node implementations that can be
+used by the graph workflow or independently.
 
-Nodes:
-- Node 0: Vehicle Classifier - Determines vehicle type from requirements
-- Node 1: Requirement Parser - Extracts structured parameters
-- Node 2: Search Agent - Performs semantic search for relevant papers
-- Node 3: Extraction Agent - Extracts formulas using RAG
-- Node 4: Tool Selector - Chooses appropriate calculation tools
-- Node 5: Calculation Agent - Executes aerospace calculations
-- Node 6: Validator - Checks design against requirements
-- Node 7: Synthesizer - Generates final design specifications
+Individual node files:
+- classifier.py: Vehicle classification
+- parser.py: Requirement parsing
+- search_agent.py: RAG search
+- calculator.py: Calculations
+- validator.py: Design validation
+- synthesizer.py: Output synthesis
+- llm_*.py: LLM-powered nodes
 """
+
+# No state imports here - nodes import directly from graph.state
+# This prevents circular import issues
 
 __all__ = []
