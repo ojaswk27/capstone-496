@@ -955,203 +955,179 @@ def validate_design(state: DesignState) -> DesignState:
 #  Node 7: Synthesizer  ––  drop-in (fixed)
 # ------------------------------------------------------------------
 def synthesize_output(state: DesignState) -> DesignState:
-    import json
+    """
+    Node 7: Synthesize final design output.
 
-    from rich.columns import Columns
-    from rich.panel import Panel
-    from rich.table import Table
-    from rich.text import Text
-
+    Creates vehicle-specific output showing only relevant parameters.
+    ALL keys match exactly what's stored in perform_calculations.
+    """
     state = update_phase(state, DesignPhase.SYNTHESIZING)
-    design = state.intermediate_results.get("design", {})
+
     req = state.requirements
-    vr = state.validation_result
+    vehicle = state.vehicle_type
+    design_data = state.intermediate_results.get("design", {})
 
-    # ----------  components (same as before)  ----------
-    components: list[DesignComponent] = []
-    if state.vehicle_type == VehicleType.DRONE:
-        components = [
-            DesignComponent(
-                name="Frame",
-                category="structure",
-                specifications={
-                    "size (mm)": f"{design.get('frame_size_mm', 0):.0f}",
-                    "motors": design.get("num_motors", 4),
-                },
-                rationale="Sized for prop clearance & payload",
-                source_citations=["Drone Design Ref"],
-            ),
-            DesignComponent(
-                name="Motors",
-                category="propulsion",
-                specifications={
-                    "KV": f"{design.get('motor_kv', 0):.0f}",
-                    "count": design.get("num_motors", 4),
-                },
-                rationale="Selected for thrust & efficiency",
-                source_citations=["Motor Sel Guide"],
-            ),
-            DesignComponent(
-                name="Propellers",
-                category="propulsion",
-                specifications={
-                    "dia (in)": f"{design.get('prop_diameter_in', 0):.1f}",
-                    "pitch (in)": f"{design.get('prop_pitch_in', 0):.2f}",
-                },
-                rationale="Matched to motor KV & thrust",
-                source_citations=["Prop Sizing Ref"],
-            ),
-            DesignComponent(
-                name="Battery",
-                category="power",
-                specifications={
-                    "cells": f"{design.get('battery_cells', 0)}S",
-                    "capacity (mAh)": f"{design.get('battery_capacity_mah', 0):.0f}",
-                },
-                rationale="Sized for target flight time",
-                source_citations=["Battery Guide"],
-            ),
-        ]
-    elif state.vehicle_type == VehicleType.FIXED_WING:
-        components = [
-            DesignComponent(
-                name="Wing",
-                category="structure",
-                specifications={
-                    "span (m)": f"{design.get('wing_span_m', 0):.2f}",
-                    "area (m²)": f"{design.get('wing_area_m2', 0):.2f}",
-                    "AR": f"{design.get('aspect_ratio', 0):.1f}",
-                },
-                rationale="Designed for lift & range",
-                source_citations=["Wing Design Ref"],
-            ),
-            DesignComponent(
-                name="Powerplant",
-                category="propulsion",
-                specifications={
-                    "power (kW)": f"{design.get('power_required_w', 0) / 1000:.1f}"
-                },
-                rationale="Sized for cruise performance",
-                source_citations=["A/c Prop Guide"],
-            ),
-        ]
+    if not design_data:
+        state = add_error(state, "No design data available to synthesize")
+        return state
 
-    performance = {k: v for k, v in design.items() if isinstance(v, (int, float))}
-    weight_breakdown = {}
-    if "total_weight_kg" in design:
-        weight_breakdown["Total"] = design["total_weight_kg"]
-    if "empty_weight_kg" in design:
-        weight_breakdown["Empty"] = design["empty_weight_kg"]
-    if "fuel_weight_kg" in design:
-        weight_breakdown["Fuel"] = design["fuel_weight_kg"]
-    if req and req.payload_kg:
-        weight_breakdown["Payload"] = req.payload_kg
-
-    confidence = min(
-        state.classification_confidence * 0.3
-        + (0.5 if vr and vr.passed else 0)
-        + (0.2 if state.search_results else 0),
-        1.0,
-    )
-
-    # ----------  Rich helpers  ----------
-    def table_from_dict(d: dict, title: str) -> Table:
-        t = Table(title=title, show_header=False, box="rounded")
-        t.add_column("Key", style="cyan", width=16)
-        t.add_column("Value", style="magenta")
-        for k, v in d.items():
-            t.add_row(str(k), f"{v:,}" if isinstance(v, (int, float)) else str(v))
-        return t
-
-    def component_table(comps: list[DesignComponent]) -> Table:
-        t = Table(title="Components", box="rounded")
-        t.add_column("Component", style="green")
-        t.add_column("Specs", style="bright_yellow")
-        t.add_column("Rationale", style="dim")
-        for c in comps:
-            spec_line = "  ".join(f"{k}: {v}" for k, v in c.specifications.items())
-            t.add_row(c.name, spec_line, c.rationale)
-        return t
-
-    # header panel  (NO .value anymore)
-    header_txt = Text.assemble(
-        ("🚀  ", "bold bright_blue"),
-        (f"{state.vehicle_type.upper()}  DESIGN", "bold bright_white"),
-        "  │  ",
-        ("Confidence: ", "dim"),
-        (f"{confidence:.0%}", "bright_green" if confidence > 0.7 else "bright_yellow"),
-    )
-    panels = [Panel(header_txt, expand=False, border_style="bright_blue")]
-
-    if vr:
-        colour = "bright_green" if vr.passed else "bright_red"
-        panels.append(
-            Panel(
-                f"[{colour}]{'✔ PASS' if vr.passed else '✗ FAIL'}[/{colour}]",
-                title="Validation",
-                expand=False,
-            )
+    # Vehicle-specific output formatting - VERIFIED AGAINST ACTUAL STORED KEYS
+    if vehicle == VehicleType.DRONE:
+        summary = (
+            f"Multicopter drone design for {req.payload_kg}kg payload. "
+            f"Total weight: {design_data.get('total_weight_kg', 0):.1f}kg. "
+            f"Estimated flight time: {design_data.get('hover_time_min', 0):.1f} minutes."
         )
 
-    tables = [component_table(components)]
-    if performance:
-        tables.append(table_from_dict(performance, "Performance"))
-    if weight_breakdown:
-        tables.append(table_from_dict(weight_breakdown, "Weight Breakdown (kg)"))
+        # These keys EXACTLY match what's stored in perform_calculations
+        specifications = {
+            "frame_size_mm": design_data.get("frame_size_mm"),
+            "num_motors": design_data.get("num_motors"),
+            "motor_kv": design_data.get("motor_kv"),
+            "prop_diameter_in": design_data.get("prop_diameter_in"),
+            "prop_pitch_in": design_data.get("prop_pitch_in"),
+            "battery_cells": design_data.get("battery_cells"),
+            "battery_capacity_mah": design_data.get("battery_capacity_mah"),
+            "total_weight_kg": design_data.get("total_weight_kg"),
+            "max_thrust_n": design_data.get("max_thrust_n"),
+            "thrust_to_weight": design_data.get("thrust_to_weight"),
+            "hover_time_min": design_data.get("hover_time_min"),
+            "max_speed_ms": design_data.get("max_speed_ms"),
+        }
 
-    if vr and vr.warnings:
-        warn_txt = "\n".join(f"⚠️  {w}" for w in vr.warnings)
-        panels.append(Panel(warn_txt, title="Warnings", border_style="yellow"))
-    if vr and vr.errors:
-        err_txt = "\n".join(f"❌ {e}" for e in vr.errors)
-        panels.append(Panel(err_txt, title="Errors", border_style="red"))
-
-    if state.search_results:
-        cit_txt = "\n".join(
-            f"📄 {c}" for c in list({r.source for r in state.search_results})[:5]
+    elif vehicle == VehicleType.FIXED_WING:
+        summary = (
+            f"Fixed-wing aircraft design for {req.payload_kg}kg payload. "
+            f"Total weight: {design_data.get('total_weight_kg', 0):.1f}kg. "
+            f"Range: {design_data.get('range_km', 0):.0f}km at {design_data.get('cruise_speed_ms', 0) * 3.6:.0f}km/h."
         )
-        panels.append(Panel(cit_txt, title="Citations", border_style="dim"))
 
-    rich_render = Columns([*panels, *tables], equal=False, expand=False)
+        # These keys EXACTLY match what's stored in perform_calculations
+        specifications = {
+            "wing_span_m": design_data.get("wing_span_m"),
+            "wing_area_m2": design_data.get("wing_area_m2"),
+            "aspect_ratio": design_data.get("aspect_ratio"),
+            "total_weight_kg": design_data.get("total_weight_kg"),
+            "empty_weight_kg": design_data.get("empty_weight_kg"),
+            "fuel_weight_kg": design_data.get("fuel_weight_kg"),
+            "power_required_w": design_data.get("power_required_w"),
+            "stall_speed_ms": design_data.get("stall_speed_ms"),
+            "cruise_speed_ms": design_data.get("cruise_speed_ms"),
+            "cruise_speed_kmh": design_data.get("cruise_speed_ms", 0) * 3.6,  # Calculated
+            "range_km": design_data.get("range_km"),
+        }
 
-    # ----------  store same pydantic model  ----------
+    elif vehicle == VehicleType.HELICOPTER:
+        summary = (
+            f"Helicopter design for {req.payload_kg}kg payload. "
+            f"Total weight: {design_data.get('total_weight_kg', 0):.1f}kg. "
+            f"Main rotor diameter: {design_data.get('rotor_diameter_m', 0):.1f}m."
+        )
+
+        # These keys EXACTLY match what's stored in perform_calculations
+        specifications = {
+            "rotor_diameter_m": design_data.get("rotor_diameter_m"),
+            "rotor_blades": design_data.get("rotor_blades"),
+            "rotor_rpm": design_data.get("rotor_rpm"),
+            "tail_rotor_diameter_m": design_data.get("tail_rotor_diameter_m"),
+            "total_weight_kg": design_data.get("total_weight_kg"),
+            "hover_power_w": design_data.get("hover_power_w"),
+            "cruise_power_w": design_data.get("cruise_power_w"),
+            "engine_power_w": design_data.get("engine_power_w"),
+            "fuel_consumption_kghr": design_data.get("fuel_consumption_kghr"),
+        }
+
+    elif vehicle == VehicleType.ROCKET:
+        summary = (
+            f"Rocket design for {req.payload_kg}kg payload to {design_data.get('predicted_altitude_m', 0):.0f}m altitude. "
+            f"Total mass: {design_data.get('total_mass_kg', 0):.1f}kg. "
+            f"Number of stages: {design_data.get('num_stages', 1)}."
+        )
+
+        # These keys EXACTLY match what's stored in perform_calculations
+        specifications = {
+            "num_stages": design_data.get("num_stages"),
+            "total_mass_kg": design_data.get("total_mass_kg"),
+            "payload_fraction": design_data.get("payload_fraction"),
+            "total_delta_v_ms": design_data.get("total_delta_v_ms"),
+            "predicted_altitude_m": design_data.get("predicted_altitude_m"),
+            "target_achieved": design_data.get("target_achieved"),
+            "stages": design_data.get("stages"),  # Already formatted correctly
+        }
+
+    elif vehicle == VehicleType.SATELLITE:
+        orbit_alt_m = design_data.get("orbit_altitude_m", 0)
+        summary = (
+            f"Satellite design for {req.payload_kg}kg payload at {orbit_alt_m / 1000:.0f}km altitude. "
+            f"Total mass: {design_data.get('total_mass_kg', 0):.1f}kg. "
+            f"Design life: {design_data.get('design_life_years', 0):.0f} years."
+        )
+
+        # These keys EXACTLY match what's stored in perform_calculations
+        specifications = {
+            "orbit_type": design_data.get("orbit_type"),
+            "orbit_altitude_m": design_data.get("orbit_altitude_m"),
+            "orbit_altitude_km": design_data.get("orbit_altitude_m", 0) / 1000,  # Calculated
+            "orbital_velocity_ms": design_data.get("orbital_velocity_ms"),
+            "orbital_period_s": design_data.get("orbital_period_s"),
+            "orbital_period_hours": design_data.get("orbital_period_s", 0) / 3600,  # Calculated
+            "total_mass_kg": design_data.get("total_mass_kg"),
+            "solar_array_area_m2": design_data.get("solar_array_area_m2"),
+            "battery_capacity_wh": design_data.get("battery_capacity_wh"),
+            "dimensions_m": design_data.get("dimensions_m"),
+            "design_life_years": design_data.get("design_life_years"),
+        }
+
+    elif vehicle == VehicleType.GLIDER:
+        summary = (
+            f"Glider design with {design_data.get('best_glide_ratio', 0):.1f}:1 best glide ratio. "
+            f"Wingspan: {design_data.get('wing_span_m', 0):.1f}m. "
+            f"Empty weight: {design_data.get('empty_weight_kg', 0):.1f}kg."
+        )
+
+        # These keys EXACTLY match what's stored in perform_calculations
+        specifications = {
+            "wing_span_m": design_data.get("wing_span_m"),
+            "wing_area_m2": design_data.get("wing_area_m2"),
+            "aspect_ratio": design_data.get("aspect_ratio"),
+            "empty_weight_kg": design_data.get("empty_weight_kg"),
+            "max_weight_kg": design_data.get("max_weight_kg"),
+            "best_glide_ratio": design_data.get("best_glide_ratio"),
+            "min_sink_rate_ms": design_data.get("min_sink_rate_ms"),
+            "stall_speed_ms": design_data.get("stall_speed_ms"),
+            "stall_speed_kmh": design_data.get("stall_speed_ms", 0) * 3.6,  # Calculated
+            "max_speed_ms": design_data.get("max_speed_ms"),
+            "max_speed_kmh": design_data.get("max_speed_ms", 0) * 3.6,  # Calculated
+        }
+
+    else:
+        summary = f"Design for {vehicle.value}"
+        specifications = design_data
+
+    # Remove None values from specifications
+    specifications = {k: v for k, v in specifications.items() if v is not None}
+
+    # Create validation result
+    validation = state.validation_result or ValidationResult(
+        passed=True,
+        checks={},
+        warnings=state.warnings,
+        errors=state.errors,
+        suggestions=[]
+    )
+
+    # Create design output
     state.design_output = DesignOutput(
-        vehicle_type=state.vehicle_type,
-        summary=f"Design for {state.vehicle_type} based on user requirements. "
-        + (f"Payload capacity: {req.payload_kg} kg. " if req and req.payload_kg else "")
-        + (
-            f"Total weight: {weight_breakdown.get('Total', 0):.1f} kg."
-            if "Total" in weight_breakdown
-            else ""
-        ),
-        specifications=design,
-        performance=performance,
-        components=components,
-        weight_breakdown=weight_breakdown,
-        validation=vr
-        or ValidationResult(
-            passed=True, checks={}, warnings=[], errors=[], suggestions=[]
-        ),
-        citations=list({r.source for r in state.search_results}),
-        confidence_score=confidence,
-        _rich_render=rich_render,
+        vehicle_type=vehicle,
+        summary=summary,
+        specifications=specifications,
+        performance={},
+        components=[],
+        weight_breakdown={},
+        validation=validation,
+        citations=[],
+        confidence_score=state.classification_confidence
     )
 
-    state = update_phase(state, DesignPhase.COMPLETE)
+    state.phase = DesignPhase.COMPLETE
     return state
-
-
-# =============================================================================
-# Export all nodes
-# =============================================================================
-
-__all__ = [
-    "classify_vehicle",
-    "parse_requirements",
-    "search_documents",
-    "extract_formulas",
-    "select_tools",
-    "perform_calculations",
-    "validate_design",
-    "synthesize_output",
-]

@@ -182,6 +182,7 @@ def process_design_request(user_input: str):
             and hasattr(result.design_output, "_rich_render")
         ):
             console.print(result.design_output._rich_render())
+
         else:
             # Fallback plain text output
             print("\n" + "=" * 60)
@@ -190,17 +191,17 @@ def process_design_request(user_input: str):
 
             # Handle both enum and string vehicle_type
             vtype = result.vehicle_type
-            vtype_str = vtype.value if hasattr(vtype, "value") else str(vtype)
+            vtype_str = vtype.value if hasattr(vtype, 'value') else str(vtype)
             print(f"\n🚀 Vehicle Type: {vtype_str.upper()}")
-
-            print(
-                f"📊 Classification Confidence: {result.classification_confidence:.0%}"
-            )
+            print(f"📊 Classification Confidence: {result.classification_confidence:.0%}")
 
             req = result.requirements
             if req:
-                print(f"\n📋 Parsed Requirements:")
-                print(f"   • Raw Input: {req.raw_input}")
+                print(f"\n📋 User Requirements:")
+                print(f"   {req.raw_input}")
+
+                # Show what was specified vs completed
+                print(f"\n📐 Design Parameters:")
                 if req.payload_kg:
                     print(f"   • Payload: {req.payload_kg} kg")
                 if req.endurance_hours:
@@ -208,19 +209,60 @@ def process_design_request(user_input: str):
                 if req.range_km:
                     print(f"   • Range: {req.range_km} km")
                 if req.speed_kmh:
-                    print(f"   • Speed: {req.speed_kmh} km/h")
+                    print(f"   • Cruise Speed: {req.speed_kmh} km/h")
                 if req.altitude_m:
-                    print(f"   • Altitude: {req.altitude_m} m")
+                    print(f"   • Operating Altitude: {req.altitude_m} m")
 
             if result.design_output:
                 do = result.design_output
-                print(f"\n{do.summary}")
-                print("\nSpecifications:")
+                print(f"\n📝 {do.summary}")
+
+                # Vehicle-specific specification display
+                print(f"\n✨ Design Specifications:")
+                print("-" * 60)
+
                 for k, v in do.specifications.items():
+                    # Format the key nicely
+                    key_display = k.replace("_", " ").title()
+
+                    # Format the value based on type
                     if isinstance(v, float):
-                        print(f"   • {k}: {v:.2f}")
+                        if "ratio" in k or "fraction" in k:
+                            print(f"   • {key_display}: {v:.2f}")
+                        elif "kg" in k or "mass" in k or "weight" in k:
+                            print(f"   • {key_display}: {v:.2f} kg")
+                        elif "_m" in k and "m2" not in k and "ms" not in k:
+                            print(f"   • {key_display}: {v:.2f} m")
+                        elif "m2" in k or "area" in k:
+                            print(f"   • {key_display}: {v:.2f} m²")
+                        elif "kmh" in k or "km/h" in k or "speed" in k:
+                            print(f"   • {key_display}: {v:.1f} km/h")
+                        elif "ms" in k:
+                            print(f"   • {key_display}: {v:.2f} m/s")
+                        elif "km" in k and "kmh" not in k:
+                            print(f"   • {key_display}: {v:.1f} km")
+                        elif "w" in k.lower() or "power" in k:
+                            print(f"   • {key_display}: {v:.0f} W")
+                        elif "rpm" in k:
+                            print(f"   • {key_display}: {v:.0f} RPM")
+                        elif "altitude" in k:
+                            print(f"   • {key_display}: {v:.0f} m")
+                        else:
+                            print(f"   • {key_display}: {v:.2f}")
+                    elif isinstance(v, bool):
+                        print(f"   • {key_display}: {'✅ Yes' if v else '❌ No'}")
+                    elif isinstance(v, list):
+                        print(f"   • {key_display}:")
+                        for item in v:
+                            if isinstance(item, dict):
+                                print(f"      - Stage {item.get('stage', '?')}:")
+                                for sk, sv in item.items():
+                                    if sk != 'stage':
+                                        print(f"        {sk}: {sv}")
+                            else:
+                                print(f"      - {item}")
                     else:
-                        print(f"   • {k}: {v}")
+                        print(f"   • {key_display}: {v}")
 
             if result.warnings:
                 print("\n⚠️  Warnings:")
@@ -233,6 +275,7 @@ def process_design_request(user_input: str):
                     print(f"   • {e}")
 
             print("\n" + "=" * 60 + "\n")
+
 
     # -------------  FALLBACK  -------------
     except ImportError as e:

@@ -93,53 +93,54 @@ def validate_and_correct_data_llm(state: DesignState) -> DesignState:
 
     prompt = f"""You are an aerospace engineer reviewing design data retrieved from research papers.
 
-DESIGN REQUIREMENTS:
-- Vehicle Type: {vehicle_type}
-- User Request: {req.raw_input}
-- Payload: {req.payload_kg or "not specified"} kg
-- Endurance: {req.endurance_hours or "not specified"} hours
-- Range: {req.range_km or "not specified"} km
-- Speed: {req.speed_kmh or "not specified"} km/h
+    DESIGN REQUIREMENTS:
+    - Vehicle Type: {vehicle_type}
+    - User Request: {req.raw_input}
+    - Payload: {req.payload_kg or 'not specified'} kg
+    - Endurance: {req.endurance_hours or 'not specified'} hours
+    - Range: {req.range_km or 'not specified'} km
+    - Speed: {req.speed_kmh or 'not specified'} km/h
 
-RETRIEVED DATA SUMMARY:
-Formulas: {json.dumps(formulas_summary, indent=2) if formulas_summary else "None"}
+    RETRIEVED DATA SUMMARY:
+    Formulas: {json.dumps(formulas_summary, indent=2) if formulas_summary else 'None'}
 
-Search Results Context:
-{search_context}
+    Search Results Context:
+    {search_context}
 
-TASK: Review this data and identify scale/context mismatches. Return ONLY a JSON object:
-{{
-  "issues_found": [
+    TASK: Review this data and identify scale/context mismatches. 
+
+    IMPORTANT: Return ONLY valid JSON. No trailing commas, all strings quoted, proper formatting.
+
+    Return this exact structure:
     {{
-      "issue": "description of problem",
-      "severity": "high"|"medium"|"low",
-      "affected_parameter": "parameter name"
+      "issues_found": [
+        {{
+          "issue": "description of problem",
+          "severity": "high/medium/low",
+          "affected_parameter": "parameter name"
+        }}
+      ],
+      "corrections": {{
+        "cruise_speed_kmh": 0.0,
+        "default_range_km": 0.0,
+        "weight_estimation_notes": "Adjusted for UAV scale",
+        "other_adjustments": {{}}
+      }},
+      "reasoning": "Brief explanation of corrections made",
+      "confidence": 0.85
     }}
-  ],
-  "corrections": {{
-    "cruise_speed_kmh": float or null,
-    "default_range_km": float or null,
-    "weight_estimation_notes": "string or null",
-    "other_adjustments": {{"key": "value"}}
-  }},
-  "reasoning": "explanation of corrections",
-  "confidence": 0.0 to 1.0
-}}
 
-Common issues to check:
-1. Are cruise speeds appropriate for the vehicle scale? (e.g., 4kg drone shouldn't cruise at 200 km/h)
-2. Are weight estimation formulas meant for manned aircraft being applied to UAVs?
-3. Are power/energy calculations using appropriate assumptions?
-4. Are the retrieved formulas applicable to this vehicle type?
-5. Are default values reasonable for the specified payload and vehicle type?
+    Rules:
+    1. All numeric values must be valid JSON numbers (not null, not strings)
+    2. Use null (not "null") if no value
+    3. No trailing commas before closing braces or brackets
+    4. All keys must be double-quoted strings
+    5. confidence must be a number between 0.0 and 1.0
 
-Typical speeds by vehicle type:
-- Small UAV (<25kg): 40-80 km/h
-- Tactical UAV (25-600kg): 70-150 km/h
-- Light sport aircraft: 100-180 km/h
-- General aviation: 150-300 km/h
-
-Focus on parametric mismatches and inappropriate defaults, not formula correctness."""
+    Common issues to check:
+    1. Are cruise speeds appropriate for vehicle scale? (4kg drone → 60-80 km/h, not 200 km/h)
+    2. Are weight formulas appropriate for the vehicle size?
+    3. Are default values reasonable for the payload and vehicle type?"""
 
     try:
         response = client.messages.create(
