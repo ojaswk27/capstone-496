@@ -1,30 +1,7 @@
-Template for creating and submitting MAT496 capstone project.
-
-# Overview of MAT496
-
-In this course, we have primarily learned Langgraph. This is helpful tool to build apps which can process unstructured `text`, find information we are looking for, and present the format we choose. Some specific topics we have covered are:
-
-- Prompting
-- Structured Output 
-- Semantic Search
-- Retreaval Augmented Generation (RAG)
-- Tool calling LLMs & MCP
-- Langgraph: State, Nodes, Graph
-
-We also learned that Langsmith is a nice tool for debugging Langgraph codes.
-
-------
-
-# Capstone Project objective
-
-The first purpose of the capstone project is to give a chance to revise all the major above listed topics. The second purpose of the capstone is to show your creativity. Think about all the problems which you can not have solved earlier, but are not possible to solve with the concepts learned in this course. For example, We can use LLM to analyse all kinds of news: sports news, financial news, political news. Another example, we can use LLMs to build a legal assistant. Pretty much anything which requires lots of reading, can be outsourced to LLMs. Let your imagination run free.
-
-
--------------------------
-
 # Project report
 
 ## Title: AI-Powered Aerospace Design Assistant: Automated Design Generation for Any Flying Vehicle
+YouTube Unlisted Link: https://youtu.be/AKWrSqXebHs
 
 ## Overview
 
