@@ -1,7 +1,0 @@
-{
-  "dependencies": ["."],
-  "graphs": {
-    "aerospace_design": "./graph/studio_graph.py:graph"
-  },
-  "env": ".env"
-}
