@@ -36,11 +36,6 @@ __version__ = "1.0.0"
 __author__ = "MAT496 Student"
 __course__ = "MAT496 Capstone Project"
 
-# Package-level imports for convenience
-from .config import Config, get_config
-
 __all__ = [
-    "Config",
-    "get_config",
     "__version__",
 ]
