@@ -365,5 +365,30 @@ class TestValidateAgent(unittest.TestCase):
         assert result.phase == "validating"
 
 
+class TestWorkflow(unittest.TestCase):
+    def test_graph_builds(self):
+        from graph.workflow import build_design_graph
+        graph = build_design_graph()
+        assert graph is not None
+
+    def test_synthesize_formats_output(self):
+        from graph.workflow import synthesize_output
+        from graph.state import create_initial_state, DesignPhase, ValidationResult
+        state = create_initial_state("drone 0.5kg")
+        state.vehicle_type = "drone"
+        state.requirements.payload_kg = 0.5
+        state.classification_confidence = 0.9
+        state.intermediate_results["design"] = {
+            "total_weight": 1.5,
+            "hover_time": 22,
+            "frame_size": 350,
+        }
+        state.validation_result = ValidationResult(passed=True)
+        result = synthesize_output(state)
+        assert result.design_output is not None
+        assert result.design_output.vehicle_type == "drone"
+        assert result.phase == "complete"
+
+
 if __name__ == "__main__":
     unittest.main()
