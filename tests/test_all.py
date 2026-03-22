@@ -263,5 +263,47 @@ class TestParameterAgent(unittest.TestCase):
         assert result.requirements.payload_kg == 5.0
 
 
+class TestValidateAgent(unittest.TestCase):
+    @patch("agents.validate.OllamaClient")
+    def test_passes_good_design(self, MockClient):
+        instance = MockClient.return_value
+        instance.chat_json.return_value = {
+            "passed": True,
+            "checks": {"payload": True, "endurance": True},
+            "warnings": [],
+            "errors": [],
+            "feedback": ""
+        }
+        from agents.validate import validate_agent
+        from graph.state import create_initial_state
+        state = create_initial_state("drone 0.5kg 20min")
+        state.vehicle_type = "drone"
+        state.requirements.payload_kg = 0.5
+        state.intermediate_results["design"] = {"total_weight": 1.5, "hover_time": 22}
+        result = validate_agent(state)
+        assert result.validation_result.passed is True
+        assert result.phase == "synthesizing"
+
+    @patch("agents.validate.OllamaClient")
+    def test_fails_bad_design(self, MockClient):
+        instance = MockClient.return_value
+        instance.chat_json.return_value = {
+            "passed": False,
+            "checks": {"payload": True, "endurance": False},
+            "warnings": ["Low flight time"],
+            "errors": ["Flight time 10min below target 20min"],
+            "feedback": "Increase battery capacity or reduce weight"
+        }
+        from agents.validate import validate_agent
+        from graph.state import create_initial_state
+        state = create_initial_state("drone 0.5kg 20min")
+        state.vehicle_type = "drone"
+        state.intermediate_results["design"] = {"total_weight": 2.0, "hover_time": 10}
+        result = validate_agent(state)
+        assert result.validation_result.passed is False
+        assert result.validation_feedback is not None
+        assert result.phase == "validating"  # stays in validating for retry routing
+
+
 if __name__ == "__main__":
     unittest.main()
