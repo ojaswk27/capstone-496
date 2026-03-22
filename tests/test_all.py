@@ -215,5 +215,53 @@ class TestUnderstandAgent(unittest.TestCase):
         assert len(result.errors) > 0
 
 
+class TestParameterAgent(unittest.TestCase):
+    @patch("agents.parameter.OllamaClient")
+    def test_fills_missing_params(self, MockClient):
+        instance = MockClient.return_value
+        instance.chat_json.return_value = {
+            "payload_kg": 2.0,
+            "endurance_hours": 0.5,
+            "range_km": 30.0,
+            "speed_kmh": 60.0,
+            "altitude_m": 500.0,
+            "mission_type": "surveillance",
+            "vehicle_specific": {"num_motors": 4, "application": "photography"},
+            "reasoning": "Small surveillance drone"
+        }
+        from agents.parameter import parameter_agent
+        from graph.state import create_initial_state
+        state = create_initial_state("drone 2kg payload 30min")
+        state.vehicle_type = "drone"
+        state.requirements.payload_kg = 2.0
+        state.requirements.endurance_hours = 0.5
+        result = parameter_agent(state)
+        assert result.requirements.range_km == 30.0
+        assert result.requirements.speed_kmh == 60.0
+        assert result.phase == "designing"
+
+    @patch("agents.parameter.OllamaClient")
+    def test_preserves_existing_params(self, MockClient):
+        instance = MockClient.return_value
+        instance.chat_json.return_value = {
+            "payload_kg": 2.0,
+            "endurance_hours": 0.5,
+            "range_km": 30.0,
+            "speed_kmh": 60.0,
+            "altitude_m": 500.0,
+            "mission_type": "surveillance",
+            "vehicle_specific": {},
+            "reasoning": "test"
+        }
+        from agents.parameter import parameter_agent
+        from graph.state import create_initial_state
+        state = create_initial_state("drone")
+        state.vehicle_type = "drone"
+        state.requirements.payload_kg = 5.0  # User specified
+        result = parameter_agent(state)
+        # LLM returned 2.0 but user specified 5.0 — user value should win
+        assert result.requirements.payload_kg == 5.0
+
+
 if __name__ == "__main__":
     unittest.main()
