@@ -148,5 +148,37 @@ class TestToolSchemas(unittest.TestCase):
             validate_tool_args("nonexistent_tool", {})
 
 
+class TestDesignState(unittest.TestCase):
+    def test_create_initial_state(self):
+        from graph.state import create_initial_state
+        state = create_initial_state("design a drone with 2kg payload")
+        assert state.raw_input == "design a drone with 2kg payload"
+        assert state.phase == "understanding"
+        assert state.vehicle_type == "unknown"
+        assert state.retry_count == 0
+
+    def test_state_has_no_rag_fields(self):
+        from graph.state import DesignState
+        fields = set(DesignState.model_fields.keys())
+        assert "search_queries" not in fields
+        assert "search_results" not in fields
+        assert "extracted_formulas" not in fields
+        assert "extracted_data" not in fields
+
+    def test_state_has_new_fields(self):
+        from graph.state import DesignState
+        fields = set(DesignState.model_fields.keys())
+        assert "agent_messages" in fields
+        assert "tool_calls" in fields
+        assert "retry_count" in fields
+        assert "validation_feedback" in fields
+
+    def test_vehicle_type_is_string(self):
+        from graph.state import create_initial_state
+        state = create_initial_state("drone")
+        # With use_enum_values=True, vehicle_type should be a string
+        assert isinstance(state.vehicle_type, str)
+
+
 if __name__ == "__main__":
     unittest.main()
