@@ -99,5 +99,54 @@ class TestOllamaClient(unittest.TestCase):
         assert resp.tool_calls[0].arguments == {"payload_kg": 2.0, "flight_time_minutes": 30}
 
 
+class TestToolSchemas(unittest.TestCase):
+    def test_generate_schema_for_size_drone(self):
+        from llm.tools import generate_tool_schema
+        from tools.drone_tools import size_drone
+        schema = generate_tool_schema(
+            size_drone,
+            description="Complete drone sizing from requirements"
+        )
+        assert schema["type"] == "function"
+        assert schema["function"]["name"] == "size_drone"
+        props = schema["function"]["parameters"]["properties"]
+        assert "payload_kg" in props
+        assert props["payload_kg"]["type"] == "number"
+        assert "flight_time_minutes" in props
+        required = schema["function"]["parameters"]["required"]
+        assert "payload_kg" in required
+        assert "flight_time_minutes" in required
+        # Optional params should NOT be in required
+        assert "num_motors" not in required
+
+    def test_get_tools_for_vehicle(self):
+        from llm.tools import get_tools_for_vehicle_type
+        tools = get_tools_for_vehicle_type("drone")
+        names = [t["function"]["name"] for t in tools]
+        assert "size_drone" in names
+
+    def test_all_vehicle_types_have_tools(self):
+        from llm.tools import get_tools_for_vehicle_type
+        for vtype in ["drone", "fixed_wing", "helicopter", "rocket", "satellite", "glider"]:
+            tools = get_tools_for_vehicle_type(vtype)
+            assert len(tools) > 0, f"No tools for {vtype}"
+
+    def test_validate_tool_args_coerces_types(self):
+        from llm.tools import validate_tool_args
+        # 9B models often return strings instead of floats
+        result = validate_tool_args("size_drone", {
+            "payload_kg": "2.0",
+            "flight_time_minutes": "30"
+        })
+        assert isinstance(result["payload_kg"], float)
+        assert isinstance(result["flight_time_minutes"], float)
+        assert result["payload_kg"] == 2.0
+
+    def test_validate_tool_args_rejects_unknown_tool(self):
+        from llm.tools import validate_tool_args
+        with self.assertRaises(ValueError):
+            validate_tool_args("nonexistent_tool", {})
+
+
 if __name__ == "__main__":
     unittest.main()
