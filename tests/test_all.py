@@ -180,5 +180,40 @@ class TestDesignState(unittest.TestCase):
         assert isinstance(state.vehicle_type, str)
 
 
+class TestUnderstandAgent(unittest.TestCase):
+    @patch("agents.understand.OllamaClient")
+    def test_classifies_drone(self, MockClient):
+        instance = MockClient.return_value
+        instance.chat_json.return_value = {
+            "vehicle_type": "drone",
+            "payload_kg": 2.0,
+            "endurance_hours": 0.5,
+            "range_km": None,
+            "speed_kmh": None,
+            "altitude_m": None,
+            "mission_type": "surveillance",
+            "reasoning": "User wants a drone with 2kg payload"
+        }
+        from agents.understand import understand_agent
+        from graph.state import create_initial_state
+        state = create_initial_state("surveillance drone, 2kg payload, 30min flight")
+        result = understand_agent(state)
+        assert result.vehicle_type == "drone"
+        assert result.requirements.payload_kg == 2.0
+        assert result.requirements.endurance_hours == 0.5
+        assert result.phase == "parameterizing"
+
+    @patch("agents.understand.OllamaClient")
+    def test_handles_llm_failure(self, MockClient):
+        instance = MockClient.return_value
+        instance.chat_json.return_value = None
+        from agents.understand import understand_agent
+        from graph.state import create_initial_state
+        state = create_initial_state("drone 2kg")
+        result = understand_agent(state)
+        assert result.phase == "error"
+        assert len(result.errors) > 0
+
+
 if __name__ == "__main__":
     unittest.main()
