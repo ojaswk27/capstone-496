@@ -33,9 +33,9 @@ class OllamaClient:
     def __init__(self):
         cfg = get_config().llm
         self.model = cfg.ollama_model
-        self.base_url = cfg.ollama_base_url
         self.temperature = cfg.temperature
         self.max_retries = cfg.max_retries
+        self._client = ollama.Client(host=cfg.ollama_base_url)
 
     def chat(self, prompt: str, system_prompt: str = "") -> str:
         """Simple text chat. Returns the assistant message content."""
@@ -44,7 +44,7 @@ class OllamaClient:
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": prompt})
 
-        response = ollama.chat(
+        response = self._client.chat(
             model=self.model,
             messages=messages,
             options={"temperature": self.temperature},
@@ -65,7 +65,7 @@ class OllamaClient:
                 messages.append({"role": "system", "content": system_prompt})
             messages.append({"role": "user", "content": prompt})
 
-        response = ollama.chat(
+        response = self._client.chat(
             model=self.model,
             messages=messages,
             tools=tools,
@@ -120,18 +120,18 @@ class OllamaClient:
 
     def chat_json(self, prompt: str, system_prompt: str = "") -> Optional[Dict[str, Any]]:
         """Chat and parse the response as JSON with retries."""
+        current_prompt = prompt
         for attempt in range(self.max_retries + 1):
             try:
-                text = self.chat(prompt, system_prompt)
+                text = self.chat(current_prompt, system_prompt)
                 result = self.extract_json(text)
                 if result is not None:
                     return result
-                if attempt < self.max_retries:
-                    prompt_retry = f"Your previous response was not valid JSON. Please respond with ONLY a JSON object.\n\nOriginal request: {prompt}"
-                    text = self.chat(prompt_retry, system_prompt)
-                    result = self.extract_json(text)
-                    if result is not None:
-                        return result
+                current_prompt = (
+                    f"Your previous response was not valid JSON. "
+                    f"Please respond with ONLY a JSON object.\n\n"
+                    f"Original request: {prompt}"
+                )
             except Exception:
                 if attempt == self.max_retries:
                     raise

@@ -48,30 +48,35 @@ class TestOllamaClient(unittest.TestCase):
 
     @patch("llm.client.ollama")
     def test_chat_calls_ollama(self, mock_ollama):
-        mock_ollama.chat.return_value = {
+        mock_client_instance = MagicMock()
+        mock_client_instance.chat.return_value = {
             "message": {"role": "assistant", "content": "Hello"}
         }
+        mock_ollama.Client.return_value = mock_client_instance
         from llm.client import OllamaClient
         client = OllamaClient()
         result = client.chat("Say hello", system_prompt="Be friendly")
         assert result == "Hello"
-        mock_ollama.chat.assert_called_once()
+        mock_client_instance.chat.assert_called_once()
 
     @patch("llm.client.ollama")
     def test_chat_json_retries_on_bad_output(self, mock_ollama):
-        mock_ollama.chat.side_effect = [
+        mock_client_instance = MagicMock()
+        mock_client_instance.chat.side_effect = [
             {"message": {"role": "assistant", "content": "not json at all"}},
             {"message": {"role": "assistant", "content": '{"vehicle": "drone"}'}},
         ]
+        mock_ollama.Client.return_value = mock_client_instance
         from llm.client import OllamaClient
         client = OllamaClient()
         result = client.chat_json("classify this")
         assert result == {"vehicle": "drone"}
-        assert mock_ollama.chat.call_count == 2
+        assert mock_client_instance.chat.call_count == 2
 
     @patch("llm.client.ollama")
     def test_chat_with_tools_parses_tool_calls(self, mock_ollama):
-        mock_ollama.chat.return_value = {
+        mock_client_instance = MagicMock()
+        mock_client_instance.chat.return_value = {
             "message": {
                 "role": "assistant",
                 "content": "",
@@ -85,6 +90,7 @@ class TestOllamaClient(unittest.TestCase):
                 ],
             }
         }
+        mock_ollama.Client.return_value = mock_client_instance
         from llm.client import OllamaClient, ToolResponse
         client = OllamaClient()
         resp = client.chat_with_tools("Design a drone", tools=[])
