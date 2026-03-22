@@ -9,94 +9,26 @@ Specialized calculations for airplane design:
 - Propulsion matching
 """
 
-import json
 import math
-import os
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
 from .common_tools import RHO_SL, G, UnitConverter, air_density, isa_atmosphere
 
 # =============================================================================
-# LLM-based Aircraft Classification
+# Rule-based Aircraft Classification
 # =============================================================================
 
 
-def classify_fixed_wing_type_llm(
-    user_requirements: str, payload_kg: float, range_km: float, cruise_speed_kmh: float
+def classify_aircraft(
+    payload_kg: float, range_km: float, cruise_speed_kmh: float
 ) -> Dict[str, Any]:
     """
-    Use LLM to intelligently classify what type of fixed-wing aircraft is being designed.
-
-    Args:
-        user_requirements: Original user input
-        payload_kg: Payload mass
-        range_km: Range requirement
-        cruise_speed_kmh: Cruise speed
-
-    Returns:
-        Dict with classification results
+    Classify aircraft type from requirements using rule-based logic.
+    In the new architecture, the Parameter Agent sets aircraft_type correctly,
+    so this is a safety net for direct tool calls.
     """
-    try:
-        from anthropic import Anthropic
-
-        api_key = os.getenv("ANTHROPIC_API_KEY")
-        if not api_key:
-            return _fallback_classification(payload_kg, range_km, cruise_speed_kmh)
-
-        client = Anthropic(api_key=api_key)
-
-        prompt = f"""Analyze this fixed-wing aircraft design request and classify it:
-
-User Request: {user_requirements}
-Payload: {payload_kg} kg
-Range: {range_km} km
-Cruise Speed: {cruise_speed_kmh} km/h
-
-Determine what type of aircraft this is. Return ONLY a JSON object:
-{{
-  "category": "uav_small"|"uav_tactical"|"light_sport"|"single_engine_ga"|"twin_engine_ga"|"commuter"|"transport",
-  "is_manned": bool,
-  "propulsion_type": "electric"|"piston"|"turboprop"|"jet",
-  "design_philosophy": "efficiency"|"performance"|"payload"|"endurance",
-  "reasoning": "brief explanation"
-}}
-
-Categories:
-- uav_small: Hobby/consumer drones, <25kg MTOW, electric
-- uav_tactical: Military/commercial UAVs, 25-600kg MTOW
-- light_sport: 1-2 person sport planes, ultralight
-- single_engine_ga: Cessna-like, 2-6 passengers
-- twin_engine_ga: Small twin, 4-8 passengers
-- commuter: Regional aircraft, 19-50 passengers
-- transport: Large aircraft, 50+ passengers"""
-
-        response = client.messages.create(
-            model="claude-sonnet-4-5-20250929",
-            max_tokens=300,
-            temperature=0,
-            messages=[{"role": "user", "content": prompt}],
-        )
-
-        response_text = response.content[0].text.strip()
-
-        # Strip markdown if present
-        if response_text.startswith("```"):
-            first_newline = response_text.find("\n")
-            if first_newline != -1:
-                response_text = response_text[first_newline + 1 :]
-            if response_text.endswith("```"):
-                response_text = response_text[:-3]
-
-        data = json.loads(response_text.strip())
-        print(
-            f"🤖 LLM classified fixed-wing as: {data['category']} ({data['reasoning']})"
-        )
-        return data
-
-    except Exception as e:
-        print(f"⚠️  LLM classification failed: {e}, using fallback")
-        return _fallback_classification(payload_kg, range_km, cruise_speed_kmh)
+    return _fallback_classification(payload_kg, range_km, cruise_speed_kmh)
 
 
 def _fallback_classification(
@@ -645,26 +577,23 @@ def size_aircraft(
     range_km: float,
     cruise_speed_kmh: float,
     aircraft_type: str = "single_engine_ga",
-    user_requirements: str = "",
 ) -> AircraftDesignResult:
     """
-    Complete aircraft sizing from requirements with LLM-based classification.
+    Complete aircraft sizing from requirements.
 
     Args:
         payload_kg: Payload mass (kg)
         range_km: Required range (km)
         cruise_speed_kmh: Cruise speed (km/h)
-        aircraft_type: Type of aircraft (legacy parameter, overridden by LLM)
-        user_requirements: Original user input for intelligent classification
+        aircraft_type: Type of aircraft
 
     Returns:
         AircraftDesignResult with complete design
     """
     cruise_speed = cruise_speed_kmh / 3.6  # m/s
 
-    # ========== LLM-BASED CLASSIFICATION ==========
-    classification = classify_fixed_wing_type_llm(
-        user_requirements or "fixed wing aircraft design",
+    # ========== RULE-BASED CLASSIFICATION ==========
+    classification = classify_aircraft(
         payload_kg,
         range_km,
         cruise_speed_kmh,
@@ -870,13 +799,12 @@ def size_aircraft(
 FIXED_WING_TOOLS = {
     "size_aircraft": {
         "function": size_aircraft,
-        "description": "Complete aircraft sizing with LLM-based classification",
+        "description": "Complete aircraft sizing from requirements",
         "parameters": {
             "payload_kg": "Payload (kg)",
             "range_km": "Range (km)",
             "cruise_speed_kmh": "Cruise speed (km/h)",
-            "aircraft_type": "Aircraft type (legacy)",
-            "user_requirements": "User input for classification",
+            "aircraft_type": "Aircraft type",
         },
         "returns": "AircraftDesignResult",
     },
