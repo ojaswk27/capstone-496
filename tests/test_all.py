@@ -263,6 +263,66 @@ class TestParameterAgent(unittest.TestCase):
         assert result.requirements.payload_kg == 5.0
 
 
+class TestDesignAgent(unittest.TestCase):
+    @patch("agents.design.OllamaClient")
+    def test_calls_tool_and_stores_result(self, MockClient):
+        from llm.client import ToolCall, ToolResponse
+
+        instance = MockClient.return_value
+        instance.chat_with_tools.side_effect = [
+            ToolResponse(
+                message="",
+                tool_calls=[ToolCall(
+                    id="abc",
+                    name="size_drone",
+                    arguments={"payload_kg": 0.5, "flight_time_minutes": 20.0}
+                )],
+                raw_response={},
+            ),
+            ToolResponse(
+                message="Design complete.",
+                tool_calls=[],
+                raw_response={},
+            ),
+        ]
+
+        from agents.design import design_agent
+        from graph.state import create_initial_state
+        state = create_initial_state("drone 0.5kg 20min")
+        state.vehicle_type = "drone"
+        state.requirements.payload_kg = 0.5
+        state.requirements.endurance_hours = 20 / 60
+        state.phase = "designing"
+        result = design_agent(state)
+
+        assert len(result.tool_calls) == 1
+        assert result.tool_calls[0].tool_name == "size_drone"
+        assert result.tool_calls[0].success is True
+        assert "design" in result.intermediate_results
+
+    @patch("agents.design.OllamaClient")
+    def test_handles_bad_tool_name(self, MockClient):
+        from llm.client import ToolCall, ToolResponse
+
+        instance = MockClient.return_value
+        instance.chat_with_tools.side_effect = [
+            ToolResponse(
+                message="",
+                tool_calls=[ToolCall(id="x", name="nonexistent_tool", arguments={})],
+                raw_response={},
+            ),
+            ToolResponse(message="Could not complete.", tool_calls=[], raw_response={}),
+        ]
+
+        from agents.design import design_agent
+        from graph.state import create_initial_state
+        state = create_initial_state("drone")
+        state.vehicle_type = "drone"
+        state.phase = "designing"
+        result = design_agent(state)
+        assert any(not tc.success for tc in result.tool_calls)
+
+
 class TestValidateAgent(unittest.TestCase):
     @patch("agents.validate.OllamaClient")
     def test_passes_good_design(self, MockClient):
@@ -302,7 +362,7 @@ class TestValidateAgent(unittest.TestCase):
         result = validate_agent(state)
         assert result.validation_result.passed is False
         assert result.validation_feedback is not None
-        assert result.phase == "validating"  # stays in validating for retry routing
+        assert result.phase == "validating"
 
 
 if __name__ == "__main__":
