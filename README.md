@@ -1,240 +1,215 @@
-# Project report
+# AI-Powered Aerospace Design Assistant
 
-## Title: AI-Powered Aerospace Design Assistant: Automated Design Generation for Any Flying Vehicle
-YouTube Unlisted Link: https://youtu.be/AKWrSqXebHs
+Automated preliminary design generation for any flying vehicle. Describe what you want, and the system produces a complete engineering design with specifications, weight breakdowns, and validation.
 
 ## Overview
 
-My project is an AI assistant that designs flying vehicles automatically. You give it requirements like "I need a drone that flies for 30 minutes with 2kg payload" or "design a small rocket to reach 1km altitude", and it figures out what type of vehicle you need, searches through research papers to find the right formulas and design methods, does all the math calculations, and gives you a complete design with component specifications.
+The assistant uses a LangGraph state machine with four specialized LLM sub-agents running on local Ollama inference. Each agent has a focused task, and all routing between agents is deterministic (code-based, not LLM-decided). The Design Agent uses Ollama's native function-calling to invoke physics-based calculation tools.
 
-It uses LangGraph to manage the whole process: first it figures out what kind of vehicle you're asking for (drone, plane, helicopter, rocket, satellite, etc.), then searches for relevant papers, extracts the important formulas, calls calculation tools to do the math, checks if the design works, and outputs everything in a nice structured format with citations to the papers it used.
-
-## Reason for picking up this project
-
-This project covers all the main topics we learned in MAT496:
-
-**Prompting**: I use prompts to tell the LLM how to extract equations from research papers, understand what the user wants, and explain why certain design choices were made. Different prompts work for different types of vehicles.
-
-**Structured Output**: All the design specs come out in a clean JSON format with component details, performance numbers, and cost estimates. I'm using Pydantic models to make sure everything is organized properly.
-
-**Semantic Search**: The system searches through aerospace research papers to find relevant information. It filters by vehicle type (drone, plane, rocket, etc.) so it only looks at papers that actually matter for the design problem.
-
-**RAG (Retrieval Augmented Generation)**: After finding the right papers, it pulls out the specific formulas, data, and design methods from them. This information guides which calculations to run, and everything gets cited in the final output.
-
-**Tool calling & MCP**: I built a bunch of calculation tools for different types of vehicles - drones, planes, rockets, helicopters, satellites. The LLM picks which tools to use based on what it's designing. All the actual math happens in these tools using real aerospace formulas.
-
-**Langgraph (State, Nodes, Graph)**: The whole design process is a LangGraph with different nodes for each step: figuring out vehicle type, understanding requirements, searching papers, extracting formulas, picking tools, running calculations, checking if it works, and putting together the final design. The state keeps track of everything as it moves through the graph.
-
-I picked this project because it's creative - instead of just summarizing information, it actually creates new designs by combining knowledge from multiple sources. Plus, it connects to my drone work and lets me apply course concepts to real aerospace problems.
-
-## Plan
-
-
-## Plan
-
-I plan to execute these steps to complete my project.
-
-- [✅ DONE] Step 1 involves setting up the project - fork the template repo, install langchain, langgraph, langsmith, and FAISS/ChromaDB, set up API keys.
-
-- [✅ DONE] Step 2 involves collecting research papers - download 30-40 papers from arXiv and NASA on drones, planes, helicopters, rockets, and satellites, organize them by vehicle type. A lot harder than expected, had to use multiple layered RAG apps to fetch, read, filter and arrange bits of data that I will need.
-
-- [✅ DONE] Step 3 involves building semantic search - extract text from PDFs, create embeddings, set up vector database, test if search actually finds relevant papers.
-
-- [✅ DONE] Step 4 involves making the RAG system - write prompts to pull out formulas and data from papers, add citation tracking so we know where info came from, test on some known equations.
-
-- [✅ DONE] Step 5 involves creating all the calculation tools - drone tools (thrust, battery life, propeller size), plane tools (lift, drag, wing area, range), rocket tools (delta-v, staging, burn time), helicopter tools (rotor power), satellite tools (orbit math, power budget), and common tools (weight, balance, stability).
-
-- [✅ DONE] Step 6 involves connecting tools to the LLM - define tool schemas, set up MCP-style registration, make sure the LLM can actually call tools correctly.
-
-- [✅ DONE] Step 7 involves designing the state - define what data the graph needs to track (requirements, vehicle type, search results, formulas, calculations, final design), create Pydantic models, add vehicle classification logic.
-
-- [✅ DONE] Step 8 involves building all the LangGraph nodes - Vehicle Classifier (what type of vehicle?), Requirement Parser (understand user input), Search Agent (find relevant papers), Extraction Agent (pull out formulas using RAG), Tool Selector (pick the right calculation tools), Calculation Agent (run the math), Validator (does it meet requirements?), Synthesizer (make final design output)
-
-- [✅ DONE] Step 9 involves connecting the graph - add edges between nodes, add routing for different vehicle types, add logic to loop back if validation fails, test the whole flow.
-
-- [✅ DONE] Step 10 involves making nice output - define JSON schema for results, create templates for design reports, add tables/charts, include citations.
-
-- [✅ DONE] Step 11 involves testing everything - test with surveillance drone (60min flight, 2kg payload), small plane (2 people, 500km range), model rocket (1km altitude), LEO satellite (100kg, 400km orbit), VTOL aircraft, check if answers make sense. They match my own calculations for these given parameters.
-
-- [✅ DONE] Step 12 involves debugging with Langsmith - set up tracing, find slow parts, improve prompts, fix tool calling issues
-
-- [✅ DONE] Step 13 involves writing documentation - README with examples, explain what each node does, add code comments, show example outputs
-
-- [✅ DONE] Step 14 involves final prep - make demo video, finish conclusion, change all TODOs to DONE as I complete them, make sure commits are spread across multiple days
-
----
-
-## Major Enhancements & Advanced Features
-
-During development, several critical issues were discovered and resolved through intelligent LLM-powered solutions:
-
-### 1. **LLM Supervisor Node** ✨
-**Problem**: Initial keyword-based vehicle classification was unreliable and couldn't handle ambiguous requests.
-
-**Solution**: Created `llm_supervisor.py` that uses Claude Sonnet 4.5 to intelligently classify vehicle types and extract all requirements from natural language input. The LLM returns structured JSON with vehicle category, payload, endurance, range, speed, and reasoning.
-
-**Example**: 
-- Input: "make a fixed wing drone with 4 hours flight time and 4kg payload"
-- LLM Output: Classified as "fixed_wing", extracted 4.0kg payload, 4.0h endurance, and explained reasoning
-
-### 2. **Intelligent Parameter Completion** 🤖
-**Problem**: Users rarely specify ALL required parameters. Using hardcoded defaults (e.g., 200 km/h for all aircraft) led to absurd designs - a 4kg drone sizing at 2000kg MTOW because it used manned aircraft defaults.
-
-**Solution**: Created `llm_parameter_completer.py` that uses LLM reasoning to intelligently fill missing parameters based on:
-- Vehicle type and scale (small UAV vs manned aircraft)
-- Specified constraints (4kg payload suggests small UAV, not jet)
-- Engineering relationships (range = endurance × speed)
-- Real-world examples of similar vehicles
-
-**Example**:
-
-User specifies: "drone with 2kg payload, 40 min flight"
-LLM completes:
-  - Speed: 60 km/h (appropriate for small UAV, not 200 km/h)
-  - Range: 40 km (calculated from endurance)
-  - Altitude: 500m (typical for this class)
-  - Propulsion: electric
-  - Reasoning: "Based on payload and endurance, this matches tactical UAV class..."
-
-
-### 3. **LLM Data Validation Layer** 🔍
-**Problem**: RAG system retrieved formulas from research papers about manned aircraft and applied them directly to small drones without scale adjustments.
-
-**Solution**: Created `llm_data_validator.py` that reviews all retrieved data in context of the actual design requirements and corrects scale mismatches:
-- Detects when manned aircraft cruise speeds (200 km/h) are being applied to 4kg drones
-- Identifies weight estimation formulas meant for 1000kg aircraft being used for 15kg UAVs
-- Flags high-severity issues as warnings
-- Provides corrected parameters with reasoning
-
-**Example Output**:
-
-🔍 LLM Data Validation Results:
-   Confidence: 85%
-   Issues Found: 2
-   🔴 Cruise speed of 200 km/h is inappropriate for 4kg UAV - should be 60-80 km/h
-   🟡 Default range of 500km exceeds realistic capability for this endurance
-   ✅ Corrected cruise speed to 70 km/h
-   ✅ Recalculated range: 4h × 70 km/h = 280 km
-
-
-### 4. **Context-Aware Aircraft Classification** 🛩️
-**Problem**: Fixed-wing tool used one-size-fits-all approach - a 4kg UAV and a Cessna both used the same weight estimation formulas.
-
-**Solution**: Enhanced `fixed_wing_tools.py` with LLM-based sub-classification:
-- Categories: uav_small, uav_tactical, light_sport, single_engine_ga, twin_engine_ga, commuter, transport
-- Each category has appropriate sizing parameters (MTOW multipliers, empty weight fractions, drag coefficients, aspect ratios)
-- LLM analyzes user request + parameters to choose correct category
-- Different propulsion modeling (electric vs ICE) based on mission profile
-
-**Impact**: 4kg fixed-wing drone now correctly sized at ~12-18kg MTOW (not 2000kg!)
-
-### 5. **Markdown JSON Response Handling** 📝
-**Problem**: Claude API sometimes returns JSON wrapped in markdown code blocks (` ```json ... ``` `), causing parsing failures.
-
-**Solution**: Added `_strip_markdown_json()` helper to all LLM nodes that:
-- Detects markdown delimiters
-- Strips ` ```json ` and ` ``` ` markers
-- Returns clean JSON for parsing
-
-Applied to: `llm_supervisor.py`, `llm_formula_extractor.py`, `llm_search_generator.py`, `llm_validator.py`, `llm_data_validator.py`, `llm_parameter_completer.py`
-
-### 6. **Enum/String Type Safety** 🔒
-**Problem**: LangGraph returns state as dict with enum values as strings, but code expected enum objects, causing AttributeError: 'str' object has no attribute 'value'.
-
-**Solution**: 
-- Created `dict_to_design_state()` helper in `graph/state.py` to properly convert dicts back to DesignState with enums
-- Added safe accessor pattern throughout codebase: 
-  ```python
-  vtype = state.vehicle_type.value if hasattr(state.vehicle_type, 'value') else str(state.vehicle_type)
-  
-### 7. **Complete Workflow Integration** 🔄
-The final workflow now includes:
-User Input → LLM Supervisor (classify vehicle, extract requirements)
-          → Parse Requirements (structure the data)
-          → LLM Parameter Completer (intelligently fill missing params)
-          → Search Documents (RAG retrieval)
-          → Extract Formulas (pull equations from papers)
-          → LLM Data Validator (verify scale appropriateness)
-          → Perform Calculations (use correct tool with correct params)
-          → Validate Design (check requirements met)
-          → Synthesize Output (generate report)
-
-Key Improvements**:
-- Zero hardcoded defaults - all decisions made by LLM reasoning
-- Scale-aware calculations - small UAVs vs manned aircraft handled correctly  
-- Context validation - retrieved data verified against actual requirements
-- Transparent reasoning - LLM explains all parameter choices
-
-Technical Architecture
-
-### LLM Integration
-- **Model**: Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
-- **API**: Anthropic Messages API
-- **Key Features**: Structured JSON output, system prompts, low temperature (0) for consistency
-
-### Vector Database
-- **Engine**: ChromaDB
-- **Embeddings**: sentence-transformers/all-MiniLM-L6-v2
-- **Collections**: Aerospace research papers organized by vehicle type
-
-### State Management
-- **Framework**: Pydantic BaseModel
-- **Type Safety**: Enum-based vehicle types, strict validation
-- **Serialization**: JSON-compatible with enum handling
-
-### Calculation Tools
-- Modular design per vehicle type (drones, fixed_wing, helicopters, rockets, satellites, gliders)
-- Physics-based formulas from aerospace literature
-- Unit-aware calculations with automatic conversions
-
-#### Example Usage:
-```python
-# Run the design assistant
-python main.py --design "fixed wing drone with 4 hours flight time and 4kg payload"
 ```
-**Output**:
+User Input
+    |
+    v
+[Understand Agent] -- classifies vehicle type, extracts requirements
+    |
+    v
+[Parameter Agent]  -- fills missing parameters via engineering reasoning
+    |
+    v
+[Design Agent]     -- calls calculation tools via Ollama function-calling
+    |
+    v
+[Validate Agent]   -- reviews design against requirements (retries up to 2x)
+    |
+    v
+[Synthesize]       -- formats final output (pure code, no LLM)
+```
 
-🤖 LLM completing missing parameters...
-   ✅ Parameters completed:
-      Payload: 4.0 kg
-      Endurance: 4.0 hours
-      Range: 320.0 km
-      Cruise Speed: 80.0 km/h
-      Altitude: 1000.0 m
-      Vehicle-specific: {'propulsion_type': 'electric', 'wingspan_m': 3.2, ...}
+## Quick Start
 
-   💭 Reasoning: This specification matches a tactical fixed-wing UAV in the 15-25kg 
-   MTOW class. With 4kg payload and 4-hour endurance requirements, I selected 80 km/h 
-   cruise speed (typical for efficient long-endurance fixed-wing UAVs)...
+### Prerequisites
 
-🤖 LLM classified fixed-wing as: uav_tactical (Medium payload suggests tactical UAV)
+- Python 3.10+
+- [Ollama](https://ollama.com/) installed and running
 
-============================================================ \
-DESIGN RESULT \
-============================================================ 
+### Setup
 
-🚀 Vehicle Type: FIXED_WING
-📊 Classification Confidence: 90%
+```bash
+pip install -r requirements.txt
+ollama pull qwen2.5:7b
+ollama serve
+```
+
+### Run
+
+```bash
+# Single design
+python main.py --design "quadcopter drone with 1kg payload and 20 minute flight time"
+
+# Interactive mode
+python main.py --interactive
+
+# Check config
+python main.py --status
+```
+
+### Model override
+
+```bash
+OLLAMA_MODEL=qwen2.5:7b python main.py --design "..."
+```
+
+## Supported Vehicle Types
+
+| Vehicle | Example Prompt | Calculation Tools |
+|---------|---------------|-------------------|
+| **Drone** | "quadcopter with 1kg payload, 20min flight" | `size_drone`, `calculate_hover_thrust`, `calculate_flight_time` |
+| **Fixed Wing** | "surveillance aircraft, 5kg payload, 200km range" | `size_aircraft`, `calculate_lift`, `calculate_stall_speed` |
+| **Helicopter** | "light helicopter, 400kg payload, 500km range" | `design_helicopter` |
+| **Rocket** | "model rocket to 500m altitude, 0.5kg payload" | `design_rocket`, `tsiolkovsky_delta_v` |
+| **Satellite** | "earth observation sat, 20kg payload, 600km orbit" | `design_satellite`, `calculate_orbital_velocity`, `calculate_orbital_period` |
+| **Glider** | "competition glider, 15m class, cross-country" | `design_glider`, `calculate_glide_performance`, `calculate_best_glide_speed` |
+
+## Example Output
+
+```
+$ python main.py --design "quadcopter drone with 1kg payload and 20 minute flight time"
+
+Vehicle Type: DRONE
+Confidence: 90%
+
+Drone design for 1.0kg payload.
 
 Specifications:
-   • wing_span_m: 3.65
-   • wing_area_m2: 1.11
-   • aspect_ratio: 12.00
-   • total_weight_kg: 18.2
-   • empty_weight_kg: 9.8
-   • battery_weight_kg: 4.4
-   • power_required_w: 340.5
-   • stall_speed_ms: 12.3
-   • cruise_speed_ms: 22.2
-   • range_km: 320
+--------------------------------------------------
+  frame_size: 395.13
+  num_motors: 4
+  motor_kv: 640.00
+  prop_diameter: 10
+  prop_pitch: 4.50
+  battery_cells: 6
+  battery_capacity: 8500.00
+  total_weight: 2.49
+  max_thrust: 81.72
+  thrust_to_weight: 3.34
+  hover_time: 36.94
+  max_speed: 66.83
 
+Weight Breakdown:
+  total_weight: 2.49 kg
+```
 
-### Conclusion
+```
+$ python main.py --design "model rocket to reach 500 meters altitude, 0.5kg payload"
 
-This project successfully demonstrates the integration of all MAT496 course concepts into a practical aerospace design system. The key achievement is building an intelligent agent that doesn't just retrieve information but *reasons* about it - understanding scale, context, and engineering relationships to generate appropriate designs.
+Vehicle Type: ROCKET
+Confidence: 90%
 
-The most challenging aspect was handling the "impedance mismatch" between research literature (often focused on large aircraft) and user requests (often for small UAVs). The solution - multiple LLM reasoning layers - showcases how modern language models can act as intelligent mediators that understand both domain knowledge and practical constraints.
+Rocket design for 0.5kg payload.
 
-The system is production-ready for preliminary design work and educational use, with proper citations, transparent reasoning, and validated outputs. Future enhancements could include cost optimization, structural analysis, and CAD model generation.
+Specifications:
+--------------------------------------------------
+  total_delta_v: 133.69
+  total_mass: 0.59
+  payload_mass: 0.50
+  payload_fraction: 0.85
+  max_altitude: 500.00
+  target_achieved: True
+```
 
-**Key Takeaway**: LLMs excel not just at information retrieval but at *intelligent adaptation* - taking knowledge from one context and appropriately applying it to another through reasoning, not just pattern matching.
+## Architecture
+
+### RLM Sub-Agentic Workflow
+
+The system was redesigned from a RAG pipeline to an RLM (Reasoning Language Model) sub-agentic architecture. Instead of retrieving formulas from research papers, the LLM reasons about design parameters using its trained knowledge, then delegates to deterministic calculation tools.
+
+**Why this works better:**
+- RAG retrieval was unreliable — frequently fell back to mock data
+- 9B local models are better at focused reasoning tasks than multi-step retrieval
+- Deterministic tools do the actual math — the LLM only decides *which* tool to call and *what parameters* to pass
+- Each agent has a single focused task with a small prompt
+
+### Key Design Decisions
+
+- **Deterministic routing**: All graph edges are code-based. The LLM never decides the next step — only the Understand Agent's output determines the path.
+- **`use_enum_values = True`**: All Pydantic enums stored as strings. Route comparisons use `state.phase == "error"` not enum objects.
+- **Type coercion**: `validate_tool_args()` handles 9B model quirks like returning `"2.0"` (string) instead of `2.0` (float).
+- **Retry loop**: Validate Agent can send designs back to Design Agent up to 2 times with feedback.
+- **Merged tool results**: Design Agent merges all successful tool results, so the main sizing tool provides the foundation and utility tools add supplementary data.
+
+### Tech Stack
+
+| Component | Technology |
+|-----------|------------|
+| Orchestration | LangGraph (StateGraph) |
+| LLM Inference | Ollama (local) |
+| State Management | Pydantic BaseModel |
+| Calculation Tools | NumPy, SciPy |
+| Models | qwen2.5:7b (fast), qwen3.5:latest (quality) |
+
+### Project Structure
+
+```
+main.py                 # CLI entry point (--design, --interactive, --status)
+config.py               # Ollama-only configuration with env var overrides
+llm/
+  client.py             # Shared OllamaClient (chat, chat_json, chat_with_tools)
+  tools.py              # Tool schema generation, registry, arg validation
+agents/
+  understand.py         # Vehicle classification + requirement extraction
+  parameter.py          # Missing parameter completion
+  design.py             # Agentic tool-calling loop
+  validate.py           # Design review against requirements
+graph/
+  state.py              # DesignState, enums, Pydantic models
+  workflow.py           # LangGraph StateGraph, routing, synthesize
+tools/
+  drone_tools.py        # Multirotor sizing, hover, battery
+  fixed_wing_tools.py   # Aircraft sizing, lift, stall speed
+  helicopter_tools.py   # Rotor design, hover, forward flight
+  rocket_tools.py       # Staging, trajectory, delta-v
+  satellite_tools.py    # Orbit, power, thermal
+  glider_tools.py       # Glide performance, sink rate
+  common_tools.py       # Shared constants and utilities
+tests/
+  test_all.py           # 28 unit tests (all mocked, no Ollama needed)
+```
+
+## Development
+
+### Tests
+
+```bash
+python -m pytest tests/test_all.py -v
+```
+
+28 tests covering config, OllamaClient, tool schemas, state management, all 4 agents, and workflow integration. All tests use mocked LLM calls.
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama server URL |
+| `OLLAMA_MODEL` | `qwen3.5:latest` | Model for inference |
+
+### Model Recommendations
+
+| Model | Speed | Notes |
+|-------|-------|-------|
+| `qwen2.5:7b` | ~20s/request | Recommended for development and general use |
+| `qwen3.5:latest` | ~2-5min | Better reasoning, heavier on hardware |
+
+## Project History
+
+This project was originally built for MAT496 (capstone course) using:
+- Claude Sonnet API for all LLM calls
+- ChromaDB + sentence-transformers for RAG over aerospace papers
+- 6 independent Anthropic API calls per design
+
+It was redesigned to run entirely locally with:
+- Ollama for all inference (no API keys needed)
+- 4 focused sub-agents replacing 6 monolithic LLM calls
+- Agentic tool-calling replacing hardcoded tool selection
+- All RAG/embedding infrastructure removed (~7300 lines deleted)
+
+The calculation tools (physics formulas, sizing algorithms) were preserved — only the LLM orchestration layer changed.

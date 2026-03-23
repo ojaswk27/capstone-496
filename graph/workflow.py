@@ -34,10 +34,10 @@ def synthesize_output(state: DesignState) -> DesignState:
     payload_str = f"{req.payload_kg}kg payload" if req.payload_kg else "unspecified payload"
     summary = f"{vtype.replace('_', ' ').title()} design for {payload_str}."
 
-    # Build weight breakdown from design data
+    # Build weight breakdown from design data (exclude ratios like thrust_to_weight)
     weight_breakdown = {}
     for key in design:
-        if "weight" in key or "mass" in key:
+        if ("weight" in key or "mass" in key) and "_to_" not in key:
             val = design[key]
             if isinstance(val, (int, float)):
                 weight_breakdown[key] = float(val)

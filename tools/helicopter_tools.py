@@ -68,6 +68,8 @@ class HelicopterDesignResult:
     engine_power: float  # W
     fuel_consumption: float  # kg/hr
     total_weight: float  # kg
+    empty_weight: float = 0.0  # kg
+    fuel_weight: float = 0.0  # kg
 
 
 # =============================================================================

@@ -49,7 +49,11 @@ class OllamaClient:
             messages=messages,
             options={"temperature": self.temperature},
         )
-        return response["message"]["content"]
+        msg = response["message"]
+        # Ollama returns Pydantic models; normalize to dict for consistent access
+        if hasattr(msg, "model_dump"):
+            msg = msg.model_dump()
+        return msg.get("content", "") or ""
 
     def chat_with_tools(
         self,
@@ -73,8 +77,11 @@ class OllamaClient:
         )
 
         msg = response["message"]
+        # Ollama returns Pydantic models; normalize to dict for consistent access
+        if hasattr(msg, "model_dump"):
+            msg = msg.model_dump()
         text = msg.get("content", "") or ""
-        raw_tool_calls = msg.get("tool_calls", [])
+        raw_tool_calls = msg.get("tool_calls") or []
 
         parsed_calls = []
         for tc in raw_tool_calls:

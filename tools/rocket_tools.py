@@ -58,6 +58,9 @@ class StageResult:
     delta_v: float  # m/s
     burn_time: float  # s
     thrust: float  # N
+    payload_mass: float = 0.0  # kg
+    mass_ratio: float = 0.0
+    isp: float = 0.0  # s
 
 
 @dataclass
@@ -299,9 +302,6 @@ def analyze_stage(
         burn_time=burn_time,
         thrust=thrust,
     )
-
-
-# REPLACE the entire `optimize_staging` function in tools/rocket_tools.py starting at line 316
 
 
 def optimize_staging(

@@ -75,8 +75,6 @@ Call the appropriate calculation tool(s) to size this vehicle."""
         {"role": "user", "content": prompt},
     ]
 
-    last_result = None
-
     for _ in range(cfg.max_tool_calls):
         response = client.chat_with_tools(
             prompt="",
@@ -93,7 +91,6 @@ Call the appropriate calculation tool(s) to size this vehicle."""
                 func = get_tool_function(tc.name)
                 raw_result = func(**cleaned_args)
                 result_dict = _serialize_result(raw_result)
-                last_result = result_dict
 
                 state.tool_calls.append(ToolCallRecord(
                     tool_name=tc.name,
@@ -127,9 +124,17 @@ Call the appropriate calculation tool(s) to size this vehicle."""
                     "content": json.dumps({"error": error_msg}),
                 })
 
-    # Store the last successful tool result as the design
-    if last_result:
-        state.intermediate_results["design"] = last_result
+    # Merge all successful tool results — main sizing tools produce many fields;
+    # utility tools add supplementary data.
+    design_data = {}
+    for tc in state.tool_calls:
+        if tc.success and tc.result:
+            # Skip generic scalar wrappers from utility functions
+            if set(tc.result.keys()) <= {"value", "values", "result"}:
+                continue
+            design_data.update(tc.result)
+    if design_data:
+        state.intermediate_results["design"] = design_data
     elif not any(tc.success for tc in state.tool_calls):
         state.errors.append("Design agent failed: no successful tool calls")
 
